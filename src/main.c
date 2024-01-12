@@ -21,6 +21,46 @@
 #include "usbcfg.h"
 #include "voltage_monitor.h"
 #include "printf.h"
+#include <math.h>
+
+#define PWM_FREQ   50000
+#define PWM_PERIOD 250
+
+PWMConfig pwmcfg1 = {
+  .frequency = PWM_FREQ,
+  .period = PWM_PERIOD,
+  .callback = NULL,
+  .channels = {
+    {                                                               //ch1
+      .mode = PWM_COMPLEMENTARY_OUTPUT_ACTIVE_HIGH,
+      .callback = NULL,
+    },
+    {                                                               //ch2
+      .mode = PWM_COMPLEMENTARY_OUTPUT_ACTIVE_HIGH,
+      .callback = NULL
+    },
+    {                                                               //ch3
+      .mode = PWM_COMPLEMENTARY_OUTPUT_ACTIVE_HIGH,
+      .callback = NULL
+    },
+    {                                                               //ch4
+      .mode = PWM_OUTPUT_DISABLED,
+      .callback = NULL
+    },
+  },
+  .cr2 = 0,
+};
+
+static pwmcnt_t getPwmCnt(float speed) {
+  if(fabs(speed) > 100.0) {
+    speed = 100.0;
+  } else {
+    speed = fabs(speed);
+  }
+  return (pwmcnt_t)((100.0 - speed)/100.0 * PWM_PERIOD);
+}
+
+
 /*
  * Green LED blinker thread, times are in milliseconds.
  */
@@ -54,13 +94,11 @@ int main(void) {
   halInit();
   chSysInit();
 
-//  palSetLine(LINE_POWER_KEY);
-
   /*
    * Activates the Serial or SIO driver using the default configuration.
    */
   sdStart(&SD4, NULL);
-
+  pwmStart(&PWMD1, &pwmcfg1);
 
   sduObjectInit(&PORTAB_SDU1);
   sduStart(&PORTAB_SDU1, &serusbcfg);
@@ -92,12 +130,23 @@ int main(void) {
    * Normal main() thread activity, in this demo it does nothing except
    * sleeping in a loop and check the button state.
    */
+  palWriteLine(LINE_MOT_EN, PAL_LOW);
   while (true) {
+    for(int i=0; i<100; i++) {
+      pwmcnt_t width = getPwmCnt(i);
+      pwmEnableChannel(&PWMD1, 0, width);
+      chThdSleepMilliseconds(50);
+    }
+    for(int i=100; i>0; i--) {
+      pwmcnt_t width = getPwmCnt(i);
+      pwmEnableChannel(&PWMD1, 0, width);
+      chThdSleepMilliseconds(50);
+    }
   //  if (true) {
   //     test_execute((BaseSequentialStream *)&PORTAB_SDU1, &rt_test_suite);
   //     test_execute((BaseSequentialStream *)&PORTAB_SDU1, &oslib_test_suite);
   //   }
-    chThdSleepMilliseconds(2000);
+    
   }
 }
 
