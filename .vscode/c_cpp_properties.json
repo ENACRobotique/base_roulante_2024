@@ -1,0 +1,62 @@
+{
+    "env": {
+        "CHIBIOS": "${workspaceFolder}/ChibiOS"
+    },
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/opt/arm-gnu-toolchain-13.2/**",
+                "${workspaceFolder}/cfg",
+                "${workspaceFolder}/chibios_enac_various_common/",
+                "${CHIBIOS}/os/hal/ports/STM32/STM32G4xx/**",
+                "${CHIBIOS}/os/rt/include/**",
+                "${CHIBIOS}/os/license",
+
+                "${CHIBIOS}/os/common/portability/GCC",
+                "${CHIBIOS}/os/common/startup/ARMCMx/compilers/GCC",
+                "${CHIBIOS}/os/common/startup/ARMCMx/devices/STM32G4xx",
+                "${CHIBIOS}/os/common/ext/ARM/CMSIS/Core/Include",
+                "${CHIBIOS}/os/common/ext/ST/STM32G4xx",
+                "${CHIBIOS}/os/hal/include",
+                "${CHIBIOS}/os/hal/ports/common/ARMCMx",
+                "${CHIBIOS}/os/hal/ports/STM32/STM32G4xx",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/ADCv3",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/DACv1",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/DMAv1",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/EXTIv1",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/FDCANv1",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/GPIOv2",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/I2Cv2",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/QUADSPIv1",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/RCCv1",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/RTCv3",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/RNGv1",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/SPIv2/dr",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/SYSTICKv1",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/USARTv3",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/USBv1",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/xWDGv1",
+                "${CHIBIOS}/os/hal/osal/rt-nil",
+                "${CHIBIOS}/os/rt/include",
+                "${CHIBIOS}/os/oslib/include",
+                "${CHIBIOS}/os/common/portability/GCC",
+                "${CHIBIOS}/os/common/ports/ARM-common",
+                "${CHIBIOS}/os/common/ports/ARMv7-M",
+                "${CHIBIOS}/test/rt/source/test",
+                "${CHIBIOS}/os/test/include",
+                "${CHIBIOS}/test/oslib/source/test"
+            ],
+            "defines": [],
+            "compilerPath": "/opt/arm-gnu-toolchain-13.2/bin/arm-none-eabi-gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": [
+                "-Wall"
+            ]
+        }
+    ],
+    "version": 4
+}

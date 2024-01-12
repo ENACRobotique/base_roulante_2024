@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "ch.h": "c",
+        "*.inc": "cpp",
+        "usbcfg.h": "c",
+        "stdutil.h": "c",
+        "inctest.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
+}

@@ -1,0 +1,32 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build $(gear)",
+            "type": "shell",
+            "command": "make",
+            "problemMatcher": [
+                "$gcc"
+            ],
+        },
+        {
+            "label": "Clean $(trash)",
+            "type": "shell",
+            "command": "make clean",
+        },
+        {
+            "label": "Flash $(arrow-right)",
+            "type": "shell",
+            "command": "make flash",
+            "dependsOn": ["Build $(gear)"]
+        },
+        {
+            "label": "Serial monitor $(plug)",
+            "type": "shell",
+            "command": "python3",
+            "args": ["-m", "serial.tools.miniterm", "/dev/bmp-serial", "115200", "--filter=direct"]
+        }
+    ]
+  }
