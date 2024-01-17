@@ -113,9 +113,9 @@ include $(CHIBIOS)/os/common/ports/ARMv7-M-ALT/compilers/GCC/mk/port.mk
 # Auto-build files in ./source recursively.
 include $(CHIBIOS)/tools/mk/autobuild.mk
 # Other files (optional).
-include $(CHIBIOS)/os/test/test.mk
-include $(CHIBIOS)/test/rt/rt_test.mk
-include $(CHIBIOS)/test/oslib/oslib_test.mk
+#include $(CHIBIOS)/os/test/test.mk
+#include $(CHIBIOS)/test/rt/rt_test.mk
+#include $(CHIBIOS)/test/oslib/oslib_test.mk
 
 # Define linker script file here
 LDSCRIPT= $(STARTUPLD)/STM32G474xE.ld
@@ -124,11 +124,12 @@ LDSCRIPT= $(STARTUPLD)/STM32G474xE.ld
 # setting.
 CSRC = $(ALLCSRC) \
        $(TESTSRC) \
-      $(VARIOUS)/stdutil.c \
-       $(VARIOUS)/printf.c \
-       src/main.c \
-       src/usbcfg.c \
-       src/voltage_monitor.c
+       $(CHIBIOS)/os/various/syscalls.c \
+       $(VARIOUS)/usb_serial.c \
+       $(VARIOUS)/microrl/microrl.c \
+       $(VARIOUS)/microrl/microrlShell.c \
+       $(VARIOUS)/stdutil.c \
+       $(VARIOUS)/printf.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -164,7 +165,7 @@ UDEFS =
 UADEFS =
 
 # List all user directories here
-UINCDIR =
+UINCDIR = $(VARIOUS)/microrl
 
 # List the user directory to look for the libraries here
 ULIBDIR =

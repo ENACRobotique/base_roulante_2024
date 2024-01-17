@@ -2,7 +2,6 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "usbcfg.h"
 #include "stdutil.h"
 #include "printf.h"
 

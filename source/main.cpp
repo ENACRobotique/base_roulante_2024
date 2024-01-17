@@ -16,11 +16,11 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "rt_test_root.h"
-#include "oslib_test_root.h"
-#include "usbcfg.h"
 #include "voltage_monitor.h"
 #include "printf.h"
+#include "ttyConsole.h"
+#include "stdutil.h"
+#include "usb_serial.h"
 #include <math.h>
 
 #define PWM_FREQ   50000
@@ -49,6 +49,8 @@ PWMConfig pwmcfg1 = {
     },
   },
   .cr2 = 0,
+  .bdtr = 0,
+  .dier = 0
 };
 
 static pwmcnt_t getPwmCnt(float speed) {
@@ -64,18 +66,45 @@ static pwmcnt_t getPwmCnt(float speed) {
 /*
  * Green LED blinker thread, times are in milliseconds.
  */
-static THD_WORKING_AREA(waThread1, 128);
+static THD_WORKING_AREA(waThread1, 512);
 static THD_FUNCTION(Thread1, arg) {
   (void)arg;
   chRegSetThreadName("blinker");
-  const char buf[] = "plip\r\n";
   while (true) {
     palClearLine(LINE_LED2);
-    chThdSleepMilliseconds(200);
+    chThdSleepMilliseconds(500);
     palSetLine(LINE_LED2);
-    chThdSleepMilliseconds(200);
-//    chprintf ((BaseSequentialStream*)&PORTAB_SDU1, "%s", buf);
-    chnWrite(&PORTAB_SDU1, (uint8_t*) buf, sizeof buf - 1);
+    chThdSleepMilliseconds(500);
+    //DebugTrace("%s", buf);
+  }
+}
+
+
+
+
+/*
+ * Green LED blinker thread, times are in milliseconds.
+ */
+static THD_WORKING_AREA(waThread2, 512);
+static THD_FUNCTION(Thread2, arg) {
+  (void)arg;
+  chRegSetThreadName("pwm test");
+    palWriteLine(LINE_MOT_EN, PAL_LOW);
+    palWriteLine(LINE_MOT1_DIR, PAL_LOW);
+    palWriteLine(LINE_MOT2_DIR, PAL_HIGH);
+  while (true) {
+    for(int i=0; i<100; i++) {
+      pwmcnt_t width = getPwmCnt(i);
+      pwmEnableChannel(&PWMD1, 1, width);
+      pwmEnableChannel(&PWMD1, 2, width);
+      chThdSleepMilliseconds(50);
+    }
+    for(int i=100; i>0; i--) {
+      pwmcnt_t width = getPwmCnt(i);
+      pwmEnableChannel(&PWMD1, 1, width);
+      pwmEnableChannel(&PWMD1, 2, width);
+      chThdSleepMilliseconds(50);
+    }
   }
 }
 
@@ -93,6 +122,7 @@ int main(void) {
    */
   halInit();
   chSysInit();
+  initHeap();
 
   /*
    * Activates the Serial or SIO driver using the default configuration.
@@ -100,53 +130,19 @@ int main(void) {
   sdStart(&SD4, NULL);
   pwmStart(&PWMD1, &pwmcfg1);
 
-  sduObjectInit(&PORTAB_SDU1);
-  sduStart(&PORTAB_SDU1, &serusbcfg);
-
-
-
-  /*
-   * Activates the USB driver and then the USB bus pull-up on D+.
-   * Note, a delay is inserted in order to not have to disconnect the cable
-   * after a reset.
-   */
-  usbDisconnectBus(serusbcfg.usbp);
-  chThdSleepMilliseconds(1500);
-  usbStart(serusbcfg.usbp, &usbcfg);
-  usbConnectBus(serusbcfg.usbp);
-
-
-
-
+  consoleInit();  // initialisation des objets liés au shell
 
   /*
    * Creates the blinker thread.
    */
   chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+  chThdCreateStatic(waThread2, sizeof(waThread2), NORMALPRIO, Thread2, NULL);
 
-  //start_adc_thread();
+  // cette fonction en interne fait une boucle infinie, elle ne sort jamais
+  // donc tout code situé après ne sera jamais exécuté.
+  consoleLaunch();  // lancement du shell
 
-  /*
-   * Normal main() thread activity, in this demo it does nothing except
-   * sleeping in a loop and check the button state.
-   */
-  palWriteLine(LINE_MOT_EN, PAL_LOW);
-  while (true) {
-    for(int i=0; i<100; i++) {
-      pwmcnt_t width = getPwmCnt(i);
-      pwmEnableChannel(&PWMD1, 0, width);
-      chThdSleepMilliseconds(50);
-    }
-    for(int i=100; i>0; i--) {
-      pwmcnt_t width = getPwmCnt(i);
-      pwmEnableChannel(&PWMD1, 0, width);
-      chThdSleepMilliseconds(50);
-    }
-  //  if (true) {
-  //     test_execute((BaseSequentialStream *)&PORTAB_SDU1, &rt_test_suite);
-  //     test_execute((BaseSequentialStream *)&PORTAB_SDU1, &oslib_test_suite);
-  //   }
-    
-  }
+  // main thread does nothing
+  chThdSleep(TIME_INFINITE);
 }
 
