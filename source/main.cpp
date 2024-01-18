@@ -22,6 +22,7 @@
 #include "stdutil.h"
 #include "usb_serial.h"
 #include <math.h>
+#include "lsm6dsl.h"
 
 #include "BytesReadBuffer.h"
 #include "BytesWriteBuffer.h"
@@ -84,10 +85,8 @@ static void blinker(void *) {
 
   while (true) {
     palClearLine(LINE_LED2);
-    palSetLine(LINE_LED1);
     chThdSleepMilliseconds(500);
     palSetLine(LINE_LED2);
-    palClearLine(LINE_LED1);
     chThdSleepMilliseconds(500);
     //DebugTrace("%s", buf);
   }
@@ -143,6 +142,8 @@ static void com(void*) {
   }
 }
 
+
+
 /*
  * Application entry point.
  */
@@ -173,6 +174,8 @@ int main(void) {
   chThdCreateStatic(waBlinker, sizeof(waBlinker), NORMALPRIO, blinker, NULL);
   chThdCreateStatic(waPwmTest, sizeof(waPwmTest), NORMALPRIO, pwmTest, NULL);
   chThdCreateStatic(waCom, sizeof(waCom), NORMALPRIO, com, NULL);
+  
+  imuStart();
 
   // cette fonction en interne fait une boucle infinie, elle ne sort jamais
   // donc tout code situé après ne sera jamais exécuté.

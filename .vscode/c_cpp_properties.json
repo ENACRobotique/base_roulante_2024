@@ -36,7 +36,7 @@
                 "${CHIBIOS}/os/hal/ports/STM32/LLD/RCCv1",
                 "${CHIBIOS}/os/hal/ports/STM32/LLD/RTCv3",
                 "${CHIBIOS}/os/hal/ports/STM32/LLD/RNGv1",
-                "${CHIBIOS}/os/hal/ports/STM32/LLD/SPIv2/dr",
+                "${CHIBIOS}/os/hal/ports/STM32/LLD/SPIv2/**",
                 "${CHIBIOS}/os/hal/ports/STM32/LLD/SYSTICKv1",
                 "${CHIBIOS}/os/hal/ports/STM32/LLD/TIMv1",
                 "${CHIBIOS}/os/hal/ports/STM32/LLD/USARTv3",
