@@ -1,0 +1,4 @@
+# Black Magic Probe
+# Copy this file to /etc/udev/rules.d
+SUBSYSTEM=="tty", ATTRS{interface}=="Black Magic GDB Server", SYMLINK+="bmp_gdb"
+SUBSYSTEM=="tty", ATTRS{interface}=="Black Magic UART Port", SYMLINK+="bmp_serial"
