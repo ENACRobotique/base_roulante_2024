@@ -84,8 +84,10 @@ static void blinker(void *) {
 
   while (true) {
     palClearLine(LINE_LED2);
+    palSetLine(LINE_LED1);
     chThdSleepMilliseconds(500);
     palSetLine(LINE_LED2);
+    palClearLine(LINE_LED1);
     chThdSleepMilliseconds(500);
     //DebugTrace("%s", buf);
   }
