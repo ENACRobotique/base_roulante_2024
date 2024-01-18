@@ -1,12 +1,13 @@
 {
     "env": {
-        "CHIBIOS": "${workspaceFolder}/ChibiOS"
+        "CHIBIOS": "${workspaceFolder}/ChibiOS",
+        "ARM_TOOLCHAIN": "/opt/arm-gnu-toolchain-13.2/"
     },
     "configurations": [
         {
             "name": "Linux",
             "includePath": [
-                "/opt/arm-gnu-toolchain-13.2/**",
+                "${ARM_TOOLCHAIN}/**",
                 "${workspaceFolder}/cfg",
                 "${workspaceFolder}/build/generated",
                 "${workspaceFolder}/source/**",
@@ -52,10 +53,10 @@
                 "${CHIBIOS}/test/oslib/source/test"
             ],
             "defines": [],
-            "compilerPath": "/opt/arm-gnu-toolchain-13.2/bin/arm-none-eabi-gcc",
+            "compilerPath": "${ARM_TOOLCHAIN}/bin/arm-none-eabi-gcc",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
-            "intelliSenseMode": "linux-gcc-x64",
+            "intelliSenseMode": "linux-gcc-arm",
             "compilerArgs": [
                 "-Wall"
             ]

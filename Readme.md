@@ -34,7 +34,12 @@ sudo perl -MCPAN -e 'install String::LCSS'
 sudo apt install python-is-python3 python3-pip python3-venv
 cd EmbeddedProto/
 python3 setup.py -c
-protoc -I generator --python_out=generator/EmbeddedProto embedded_proto_options.proto
 ```
+
+It _might_ be necessary to execute this command if protobuf generation fail complaining about not finding  embedded_proto_options_pb2:
+
+`
+protoc -I generator --python_out=generator/EmbeddedProto embedded_proto_options.proto
+`
 
 

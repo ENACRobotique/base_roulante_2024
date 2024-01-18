@@ -58,6 +58,13 @@ PWMConfig pwmcfg1 = {
   .dier = 0
 };
 
+SerialConfig sd4conf = {
+  .speed = 115200,
+  .cr1 = 0,
+  .cr2 = USART_CR2_STOP1_BITS | USART_CR2_LINEN,
+  .cr3 = 0
+};
+
 static pwmcnt_t getPwmCnt(float speed) {
   if(fabs(speed) > 100.0) {
     speed = 100.0;
@@ -126,9 +133,11 @@ static void com(void*) {
   while(true) {
     voltage += 0.2;
     battery_report.set_voltage(voltage);
+    buffer.clear();
     msg.serialize(buffer);
+    //chprintf((BaseSequentialStream*) &SD4, "plop\r\n");
     sdWrite(&SD4, buffer.get_data(), buffer.get_size());
-    chThdSleepMilliseconds(200);
+    chThdSleepMilliseconds(1000);
   }
 }
 
@@ -151,7 +160,7 @@ int main(void) {
   /*
    * Activates the Serial or SIO driver using the default configuration.
    */
-  sdStart(&SD4, NULL);
+  sdStart(&SD4, &sd4conf);
   pwmStart(&PWMD1, &pwmcfg1);
 
   consoleInit();  // initialisation des objets liés au shell
