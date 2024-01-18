@@ -8,6 +8,9 @@
             "includePath": [
                 "/opt/arm-gnu-toolchain-13.2/**",
                 "${workspaceFolder}/cfg",
+                "${workspaceFolder}/build/generated",
+                "${workspaceFolder}/source/**",
+                "${workspaceFolder}/EmbeddedProto/src/**",
                 "${workspaceFolder}/chibios_enac_various_common/",
                 "${CHIBIOS}/os/hal/ports/STM32/STM32G4xx/**",
                 "${CHIBIOS}/os/rt/include/**",

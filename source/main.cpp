@@ -23,6 +23,11 @@
 #include "usb_serial.h"
 #include <math.h>
 
+#include "BytesReadBuffer.h"
+#include "BytesWriteBuffer.h"
+
+#include "messages.h"
+
 #define PWM_FREQ   50000
 #define PWM_PERIOD 250
 
@@ -64,12 +69,12 @@ static pwmcnt_t getPwmCnt(float speed) {
 
 
 /*
- * Green LED blinker thread, times are in milliseconds.
+ * LED blinker thread, times are in milliseconds.
  */
-static THD_WORKING_AREA(waThread1, 512);
-static THD_FUNCTION(Thread1, arg) {
-  (void)arg;
+static THD_WORKING_AREA(waBlinker, 512);
+static void blinker(void *) {
   chRegSetThreadName("blinker");
+
   while (true) {
     palClearLine(LINE_LED2);
     chThdSleepMilliseconds(500);
@@ -83,11 +88,10 @@ static THD_FUNCTION(Thread1, arg) {
 
 
 /*
- * Green LED blinker thread, times are in milliseconds.
+ * test PWM
  */
-static THD_WORKING_AREA(waThread2, 512);
-static THD_FUNCTION(Thread2, arg) {
-  (void)arg;
+static THD_WORKING_AREA(waPwmTest, 512);
+static void pwmTest(void*) {
   chRegSetThreadName("pwm test");
     palWriteLine(LINE_MOT_EN, PAL_LOW);
     palWriteLine(LINE_MOT1_DIR, PAL_LOW);
@@ -105,6 +109,26 @@ static THD_FUNCTION(Thread2, arg) {
       pwmEnableChannel(&PWMD1, 2, width);
       chThdSleepMilliseconds(50);
     }
+  }
+}
+
+
+static THD_WORKING_AREA(waCom, 512);
+static void com(void*) {
+  chRegSetThreadName("com");
+  
+  BytesWriteBuffer buffer;
+  protoduck::Message msg;
+  auto& battery_report = msg.mutable_bat();
+  
+  float voltage = 10;
+
+  while(true) {
+    voltage += 0.2;
+    battery_report.set_voltage(voltage);
+    msg.serialize(buffer);
+    sdWrite(&SD4, buffer.get_data(), buffer.get_size());
+    chThdSleepMilliseconds(200);
   }
 }
 
@@ -135,8 +159,9 @@ int main(void) {
   /*
    * Creates the blinker thread.
    */
-  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
-  chThdCreateStatic(waThread2, sizeof(waThread2), NORMALPRIO, Thread2, NULL);
+  chThdCreateStatic(waBlinker, sizeof(waBlinker), NORMALPRIO, blinker, NULL);
+  chThdCreateStatic(waPwmTest, sizeof(waPwmTest), NORMALPRIO, pwmTest, NULL);
+  chThdCreateStatic(waCom, sizeof(waCom), NORMALPRIO, com, NULL);
 
   // cette fonction en interne fait une boucle infinie, elle ne sort jamais
   // donc tout code situé après ne sera jamais exécuté.

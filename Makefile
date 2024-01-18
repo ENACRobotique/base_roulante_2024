@@ -15,7 +15,7 @@ endif
 
 # C++ specific options here (added to USE_OPT).
 ifeq ($(USE_CPPOPT),)
-  USE_CPPOPT = -fno-rtti
+  USE_CPPOPT = -fno-rtti -std=c++17 -fno-rtti -fno-exceptions
 endif
 
 # Enable this if you want the linker to remove unused code and data.
@@ -43,6 +43,20 @@ endif
 ifeq ($(USE_SMART_BUILD),)
   USE_SMART_BUILD = yes
 endif
+
+
+# protobuf
+PROTOC = protoc
+PROTO_DIR = proto
+PROTO_GEN_DIR = build/generated
+EMBEDDED_PROTO_DIR = $(shell pwd)/EmbeddedProto
+
+PROTO_FILES = $(wildcard $(PROTO_DIR)/*.proto)
+PROTO_HDR := $(PROTO_FILES:%.proto=$(PROTO_GEN_DIR)/%.h) 
+EMBEDDED_PROTO_SRC := $(wildcard ./EmbeddedProto/src/*.cpp)
+EMBEDDED_PROTO_OBJS := $(EMBEDDED_PROTO_SRC:%.cpp=$(OBJECT_DIR)/%.o)
+
+
 
 #
 # Build global options
@@ -133,7 +147,7 @@ CSRC = $(ALLCSRC) \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = $(ALLCPPSRC)
+CPPSRC = $(ALLCPPSRC) $(EMBEDDED_PROTO_SRC)
 
 # List ASM source files here.
 ASMSRC = $(ALLASMSRC)
@@ -165,7 +179,10 @@ UDEFS =
 UADEFS =
 
 # List all user directories here
-UINCDIR = $(VARIOUS)/microrl
+UINCDIR = $(VARIOUS)/microrl \
+          $(EMBEDDED_PROTO_DIR)/src \
+          $(BUILDDIR)/generated \
+          eigen
 
 # List the user directory to look for the libraries here
 ULIBDIR =
@@ -196,6 +213,15 @@ include $(RULESPATH)/rules.mk
 $(OBJS): $(CONFDIR)/board.h
 $(CONFDIR)/board.h: $(CONFDIR)/board.cfg
 	$(TOOLDIR)/boardGen.pl --no-pp-line $<  $@
+
+
+generate: $(PROTO_HDR)
+	$(info Done generating source files based on *.proto files.)
+
+$(PROTO_GEN_DIR)/%.h: %.proto
+	$(shell mkdir -p $(dir $@))
+	cd $(EMBEDDED_PROTO_DIR) && $(PROTOC) --plugin=protoc-gen-eams=protoc-gen-eams -I../$(PROTO_DIR) --eams_out=../$(PROTO_GEN_DIR) ../$<
+
 
 flash: build/ch.elf
 	bmpflash build/ch.elf
