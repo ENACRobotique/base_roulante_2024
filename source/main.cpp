@@ -71,7 +71,7 @@ static pwmcnt_t getPwmCnt(float speed) {
   } else {
     speed = fabs(speed);
   }
-  return (pwmcnt_t)((100.0 - speed)/100.0 * PWM_PERIOD);
+  return (pwmcnt_t)((speed)/100.0 * PWM_PERIOD);
 }
 
 
@@ -104,17 +104,17 @@ static void pwmTest(void*) {
     palWriteLine(LINE_MOT1_DIR, PAL_LOW);
     palWriteLine(LINE_MOT2_DIR, PAL_HIGH);
   while (true) {
-    for(int i=0; i<100; i++) {
+    for(int i=0; i<10; i++) {
       pwmcnt_t width = getPwmCnt(i);
       pwmEnableChannel(&PWMD1, 1, width);
       pwmEnableChannel(&PWMD1, 2, width);
-      chThdSleepMilliseconds(50);
+      chThdSleepMilliseconds(100);
     }
-    for(int i=100; i>0; i--) {
+    for(int i=10; i>0; i--) {
       pwmcnt_t width = getPwmCnt(i);
       pwmEnableChannel(&PWMD1, 1, width);
       pwmEnableChannel(&PWMD1, 2, width);
-      chThdSleepMilliseconds(50);
+      chThdSleepMilliseconds(100);
     }
   }
 }
