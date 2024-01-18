@@ -12,7 +12,7 @@
             "type": "cortex-debug",
             "runToEntryPoint": "main",
             "servertype": "bmp",
-            "BMPGDBSerialPort": "/dev/bmp-gdb",
+            "BMPGDBSerialPort": "/dev/bmp_gdb",
             "svdPath": "STM32G484.svd",
             "preLaunchCommands": ["make"],
             "armToolchainPath": "/opt/arm-gnu-toolchain-13.2/bin"
