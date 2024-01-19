@@ -11,6 +11,7 @@
 //#include "rtcAccess.h"
 #include "printf.h"
 #include "globalVar.h"
+#include "motor.h"
 
 
 /*===========================================================================*/
@@ -26,6 +27,7 @@ static void cmd_help(BaseSequentialStream *lchp, int argc,const char * const arg
 static void cmd_mot(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_enc(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 
+
 static const ShellCommand commands[] = {
   {"mem", cmd_mem},
   {"threads", cmd_threads},
@@ -36,6 +38,8 @@ static const ShellCommand commands[] = {
   {"enc", cmd_enc},
   {NULL, NULL}
 };
+
+
 
 
 static void cmd_help(BaseSequentialStream *lchp, int argc,const char * const argv[]) {
@@ -59,9 +63,11 @@ static void cmd_help(BaseSequentialStream *lchp, int argc,const char * const arg
 }
 
 static void cmd_mot(BaseSequentialStream *lchp, int argc,const char * const argv[]) {
-  (void)argv;
-  (void)argc;
-  chprintf (lchp, "Unimplemented!\r\n");
+  if (argc < 2){
+    chprintf (lchp, "Usage: mot <n> <speed>\r\n");
+    return;
+  }
+  set_motor(atoi(argv[0]),atoi(argv[1]));
 }
 
 static void cmd_enc(BaseSequentialStream *lchp, int argc,const char * const argv[]) {
@@ -69,6 +75,7 @@ static void cmd_enc(BaseSequentialStream *lchp, int argc,const char * const argv
   (void)argc;
   if(argc < 1) {
     chprintf (lchp, "Usage: enc <n>\r\n");
+    return;
   }
   switch (atoi(argv[0]))
   {

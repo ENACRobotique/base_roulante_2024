@@ -136,7 +136,7 @@ int main(void) {
    * Activates the Serial or SIO driver using the default configuration.
    */
   sdStart(&SD4, &sd4conf);
-  // pwmStart(&PWMD1, &pwmcfg1);
+  pwmStart(&PWMD1, &pwmcfg1);
 
   consoleInit();  // initialisation des objets liés au shell
 
@@ -154,7 +154,7 @@ int main(void) {
 
   // cette fonction en interne fait une boucle infinie, elle ne sort jamais
   // donc tout code situé après ne sera jamais exécuté.
-  //consoleLaunch();  // lancement du shell
+  consoleLaunch();  // lancement du shell
 
   // main thread does nothing
   chThdSleep(TIME_INFINITE);

@@ -14,6 +14,9 @@ extern Encoder enc1;
 extern Encoder enc2;
 extern Encoder enc3;
 
+constexpr pwmcnt_t PWM_PERIOD = 250;
+extern PWMConfig pwmcfg1;
+
 // extern Motor mot1;
 // extern Motor mot2;
 // extern Motor mot3;

@@ -12,7 +12,7 @@ Encoder enc3(STM32_TIM4, INC_PER_MM);
 
 
 constexpr uint32_t PWM_FREQ = 50000;
-constexpr pwmcnt_t PWM_PERIOD = 250;
+
 
 PWMConfig pwmcfg1 = {
   .frequency = PWM_FREQ,
