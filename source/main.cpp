@@ -149,7 +149,7 @@ int main(void) {
   
   imuStart();
   enc1.init(false);
-  //enc2.init(false);
+  enc2.init(false);
   enc3.init(false);
 
   // cette fonction en interne fait une boucle infinie, elle ne sort jamais
