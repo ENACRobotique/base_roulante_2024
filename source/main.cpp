@@ -23,41 +23,13 @@
 #include "usb_serial.h"
 #include <math.h>
 #include "lsm6dsl.h"
+#include "globalVar.h"
 
 #include "BytesReadBuffer.h"
 #include "BytesWriteBuffer.h"
 
 #include "messages.h"
 
-#define PWM_FREQ   50000
-#define PWM_PERIOD 250
-
-PWMConfig pwmcfg1 = {
-  .frequency = PWM_FREQ,
-  .period = PWM_PERIOD,
-  .callback = NULL,
-  .channels = {
-    {                                                               //ch1
-      .mode = PWM_COMPLEMENTARY_OUTPUT_ACTIVE_HIGH,
-      .callback = NULL,
-    },
-    {                                                               //ch2
-      .mode = PWM_COMPLEMENTARY_OUTPUT_ACTIVE_HIGH,
-      .callback = NULL
-    },
-    {                                                               //ch3
-      .mode = PWM_COMPLEMENTARY_OUTPUT_ACTIVE_HIGH,
-      .callback = NULL
-    },
-    {                                                               //ch4
-      .mode = PWM_OUTPUT_DISABLED,
-      .callback = NULL
-    },
-  },
-  .cr2 = 0,
-  .bdtr = 0,
-  .dier = 0
-};
 
 SerialConfig sd4conf = {
   .speed = 115200,
@@ -66,14 +38,14 @@ SerialConfig sd4conf = {
   .cr3 = 0
 };
 
-static pwmcnt_t getPwmCnt(float speed) {
-  if(fabs(speed) > 100.0) {
-    speed = 100.0;
-  } else {
-    speed = fabs(speed);
-  }
-  return (pwmcnt_t)((speed)/100.0 * PWM_PERIOD);
-}
+// static pwmcnt_t getPwmCnt(float speed) {
+//   if(fabs(speed) > 100.0) {
+//     speed = 100.0;
+//   } else {
+//     speed = fabs(speed);
+//   }
+//   return (pwmcnt_t)((speed)/100.0 * PWM_PERIOD);
+// }
 
 
 /*
@@ -106,15 +78,15 @@ static void pwmTest(void*) {
     palWriteLine(LINE_MOT2_DIR, PAL_HIGH);
   while (true) {
     for(int i=0; i<10; i++) {
-      pwmcnt_t width = getPwmCnt(i);
-      pwmEnableChannel(&PWMD1, 1, width);
-      pwmEnableChannel(&PWMD1, 2, width);
+      // pwmcnt_t width = getPwmCnt(i);
+      // pwmEnableChannel(&PWMD1, 1, width);
+      // pwmEnableChannel(&PWMD1, 2, width);
       chThdSleepMilliseconds(100);
     }
     for(int i=10; i>0; i--) {
-      pwmcnt_t width = getPwmCnt(i);
-      pwmEnableChannel(&PWMD1, 1, width);
-      pwmEnableChannel(&PWMD1, 2, width);
+      // pwmcnt_t width = getPwmCnt(i);
+      // pwmEnableChannel(&PWMD1, 1, width);
+      // pwmEnableChannel(&PWMD1, 2, width);
       chThdSleepMilliseconds(100);
     }
   }
@@ -164,7 +136,7 @@ int main(void) {
    * Activates the Serial or SIO driver using the default configuration.
    */
   sdStart(&SD4, &sd4conf);
-  pwmStart(&PWMD1, &pwmcfg1);
+  // pwmStart(&PWMD1, &pwmcfg1);
 
   consoleInit();  // initialisation des objets liés au shell
 
@@ -176,10 +148,13 @@ int main(void) {
   chThdCreateStatic(waCom, sizeof(waCom), NORMALPRIO, com, NULL);
   
   imuStart();
+  enc1.init(false);
+  //enc2.init(false);
+  enc3.init(false);
 
   // cette fonction en interne fait une boucle infinie, elle ne sort jamais
   // donc tout code situé après ne sera jamais exécuté.
-  consoleLaunch();  // lancement du shell
+  //consoleLaunch();  // lancement du shell
 
   // main thread does nothing
   chThdSleep(TIME_INFINITE);

@@ -47,7 +47,7 @@ static void imu(void *) {
     spiSelect(&SPID1);
     spiExchange(&SPID1, 2, txbuf, rxbuf);
     uint8_t who_am_i = rxbuf[1];
-    DebugTrace("who_am_i: %x", who_am_i);
+    //DebugTrace("who_am_i: %x", who_am_i);
     
     chThdSleepMilliseconds(1000);
   }

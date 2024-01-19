@@ -10,6 +10,7 @@
 #include "usb_serial.h"
 //#include "rtcAccess.h"
 #include "printf.h"
+#include "globalVar.h"
 
 
 /*===========================================================================*/
@@ -23,6 +24,7 @@ static void cmd_threads(BaseSequentialStream *lchp, int argc,const char * const 
 static void cmd_uid(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_help(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_mot(BaseSequentialStream *lchp, int argc,const char * const argv[]);
+static void cmd_enc(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 
 static const ShellCommand commands[] = {
   {"mem", cmd_mem},
@@ -31,6 +33,7 @@ static const ShellCommand commands[] = {
   {"uid", cmd_uid},
   {"help", cmd_help},
   {"mot", cmd_mot},
+  {"enc", cmd_enc},
   {NULL, NULL}
 };
 
@@ -43,9 +46,13 @@ static void cmd_help(BaseSequentialStream *lchp, int argc,const char * const arg
     chprintf (lchp, "\tuid: get chip unique ID\r\n");
     chprintf (lchp, "\thelp: get help\r\n");
     chprintf (lchp, "\tmot:\r\n");
+    chprintf (lchp, "\tenc: get encoder value\r\n");
   } else if(memcmp(argv[0], "mot", strlen(argv[0])) == 0) {
     chprintf (lchp, "Usage: mot <mot_no> <speed>\r\n");
     chprintf (lchp, "mot_no in [1 .. 3], speed in [-100.0 .. 100.0]\r\n");
+  } else if(memcmp(argv[0], "enc", strlen(argv[0])) == 0) {
+    chprintf (lchp, "Usage: enc <enc_no>\r\n");
+    chprintf (lchp, "enc_no in [1 .. 3]\r\n");
   } else {
     chprintf (lchp, "No help for \"%s\"\r\n", argv[0]);
   }
@@ -55,6 +62,29 @@ static void cmd_mot(BaseSequentialStream *lchp, int argc,const char * const argv
   (void)argv;
   (void)argc;
   chprintf (lchp, "Unimplemented!\r\n");
+}
+
+static void cmd_enc(BaseSequentialStream *lchp, int argc,const char * const argv[]) {
+  (void)argv;
+  (void)argc;
+  if(argc < 1) {
+    chprintf (lchp, "Usage: enc <n>\r\n");
+  }
+  switch (atoi(argv[0]))
+  {
+  case 1:
+    chprintf (lchp, "Enc 1: %ld\r\n", enc1.get_value());
+    break;
+  case 2:
+    chprintf (lchp, "Enc 2: %ld\r\n", enc2.get_value());
+    break;
+  case 3:
+    chprintf (lchp, "Enc 3: %ld\r\n", enc3.get_value());
+    break;
+  
+  default:
+    break;
+  }
 }
 
 /*===========================================================================*/
