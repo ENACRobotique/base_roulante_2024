@@ -24,28 +24,13 @@
 #include <math.h>
 #include "lsm6dsl.h"
 #include "globalVar.h"
+#include "communication.h"
 
 #include "BytesReadBuffer.h"
 #include "BytesWriteBuffer.h"
 
 #include "messages.h"
 
-
-SerialConfig sd4conf = {
-  .speed = 115200,
-  .cr1 = 0,
-  .cr2 = USART_CR2_STOP1_BITS | USART_CR2_LINEN,
-  .cr3 = 0
-};
-
-// static pwmcnt_t getPwmCnt(float speed) {
-//   if(fabs(speed) > 100.0) {
-//     speed = 100.0;
-//   } else {
-//     speed = fabs(speed);
-//   }
-//   return (pwmcnt_t)((speed)/100.0 * PWM_PERIOD);
-// }
 
 
 /*
@@ -67,54 +52,6 @@ static void blinker(void *) {
 
 
 
-/*
- * test PWM
- */
-static THD_WORKING_AREA(waPwmTest, 512);
-static void pwmTest(void*) {
-  chRegSetThreadName("pwm test");
-    palWriteLine(LINE_MOT_EN, PAL_LOW);
-    palWriteLine(LINE_MOT1_DIR, PAL_LOW);
-    palWriteLine(LINE_MOT2_DIR, PAL_HIGH);
-  while (true) {
-    for(int i=0; i<10; i++) {
-      // pwmcnt_t width = getPwmCnt(i);
-      // pwmEnableChannel(&PWMD1, 1, width);
-      // pwmEnableChannel(&PWMD1, 2, width);
-      chThdSleepMilliseconds(100);
-    }
-    for(int i=10; i>0; i--) {
-      // pwmcnt_t width = getPwmCnt(i);
-      // pwmEnableChannel(&PWMD1, 1, width);
-      // pwmEnableChannel(&PWMD1, 2, width);
-      chThdSleepMilliseconds(100);
-    }
-  }
-}
-
-
-static THD_WORKING_AREA(waCom, 512);
-static void com(void*) {
-  chRegSetThreadName("com");
-  
-  BytesWriteBuffer buffer;
-  protoduck::Message msg;
-  auto& battery_report = msg.mutable_bat();
-  
-  float voltage = 10;
-
-  while(true) {
-    voltage += 0.2;
-    battery_report.set_voltage(voltage);
-    buffer.clear();
-    msg.serialize(buffer);
-    //chprintf((BaseSequentialStream*) &SD4, "plop\r\n");
-    sdWrite(&SD4, buffer.get_data(), buffer.get_size());
-    chThdSleepMilliseconds(1000);
-  }
-}
-
-
 
 /*
  * Application entry point.
@@ -132,25 +69,35 @@ int main(void) {
   chSysInit();
   initHeap();
 
-  /*
-   * Activates the Serial or SIO driver using the default configuration.
-   */
-  sdStart(&SD4, &sd4conf);
+  consoleInit();  // initialisation des objets liés au shell
+
+  imuStart();
+  enc1.init(false);
+  enc2.init(false);
+  enc3.init(false);
+
+  register_callback([](protoduck::Message msg) {
+    (void)msg;
+    palToggleLine(LINE_LED1);
+    msg.clear();
+    auto& pos = msg.mutable_pos();
+    pos.set_x(enc1.get_value());
+    pos.set_y(enc2.get_value());
+    pos.set_theta(enc3.get_value());
+    post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
+  });
+
+  start_communication();
+
   pwmStart(&PWMD1, &pwmcfg1);
 
-  consoleInit();  // initialisation des objets liés au shell
 
   /*
    * Creates the blinker thread.
    */
   chThdCreateStatic(waBlinker, sizeof(waBlinker), NORMALPRIO, blinker, NULL);
-  chThdCreateStatic(waPwmTest, sizeof(waPwmTest), NORMALPRIO, pwmTest, NULL);
-  chThdCreateStatic(waCom, sizeof(waCom), NORMALPRIO, com, NULL);
   
-  imuStart();
-  enc1.init(false);
-  enc2.init(false);
-  enc3.init(false);
+
 
   // cette fonction en interne fait une boucle infinie, elle ne sort jamais
   // donc tout code situé après ne sera jamais exécuté.
