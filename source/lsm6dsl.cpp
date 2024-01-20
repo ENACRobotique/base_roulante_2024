@@ -26,7 +26,7 @@ SPIConfig spi1conf = {
 
 
 void data_cb(SPIDriver*) {
-  palToggleLine(LINE_LED1);
+  //palToggleLine(LINE_LED1);
   spiUnselectI(&SPID1);
 }
 
