@@ -13,6 +13,7 @@
                 "${workspaceFolder}/source/**",
                 "${workspaceFolder}/EmbeddedProto/src/**",
                 "${workspaceFolder}/chibios_enac_various_common/",
+                "${workspaceFolder}/eigen/**",
                 "${CHIBIOS}/os/hal/ports/STM32/STM32G4xx/**",
                 "${CHIBIOS}/os/rt/include/**",
                 "${CHIBIOS}/os/license",

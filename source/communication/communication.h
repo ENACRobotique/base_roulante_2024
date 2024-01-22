@@ -6,9 +6,6 @@
 
 using namespace protoduck;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define NUM_MESSAGES 10
 extern mailbox_t mb_free_msgs;
@@ -32,9 +29,5 @@ typedef std::function<void(Message&)> msg_callback_t;
 
 
 void register_callback(msg_callback_t cb);
-void start_communication(void);
-msg_t post_message(protoduck::Message& msg, protoduck::Message::MsgType msg_type, sysinterval_t timeout);
-
-#ifdef __cplusplus
-}
-#endif
+void communicationStart(void);
+msg_t post_message(Message& msg, Message::MsgType msg_type, sysinterval_t timeout);

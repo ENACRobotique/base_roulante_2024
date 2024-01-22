@@ -1,14 +1,8 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-    #include <ch.h>
-    #include <hal.h>
-    #include "printf.h"
-    #include "stdutil.h"
-#ifdef __cplusplus
-}
-#endif
 
+#include <ch.h>
+#include <hal.h>
+#include "printf.h"
+#include "stdutil.h"
 #include "globalVar.h"
 #include "communication.h"
 #include "BytesReadBuffer.h"
@@ -51,7 +45,7 @@ void comm_init() {
 
 static THD_WORKING_AREA(waComRx, 1024);
 static THD_WORKING_AREA(waComTx, 1024);
-void start_communication() {
+void communicationStart() {
   sdStart(&SD4, &serialConfig);
   
   // Pre-filling the free buffers pool with the available buffers, the post
