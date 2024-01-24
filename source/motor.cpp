@@ -45,7 +45,7 @@ void motorsStart() {
 void set_motor(int num_mot,double speed){
 
     if (speed < 0){
-        palWriteLine(numMoteur[num_mot], PAL_LOW); // verifier le sens de rotation
+        palWriteLine(numMoteur[num_mot], PAL_LOW); 
     }
     else{
         palWriteLine(numMoteur[num_mot], PAL_HIGH);

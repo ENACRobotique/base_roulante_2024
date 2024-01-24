@@ -38,7 +38,7 @@ const Eigen::Matrix<double, 3, 3> Dinv = D.inverse();
 
 
 void Odometry::init() {
-  enc1.init(false);
+  enc1.init(true);
   enc2.init(false);
   enc3.init(false);
   
