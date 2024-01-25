@@ -6,5 +6,6 @@
         "stdutil.h": "c",
         "inctest.h": "c"
     },
-    "C_Cpp.errorSquiggles": "enabled"
+    "C_Cpp.errorSquiggles": "enabled",
+    "cmake.configureOnOpen": false
 }
