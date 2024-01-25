@@ -13,10 +13,21 @@ extern const Eigen::Matrix<double, 3, 3> D;
 
 
 class Odometry {
+
+private:
+    
+
+    Eigen::Vector3d prev_motors_pos;
+    Eigen::Vector3d _position;
+    Eigen::Vector3d _speed_r;
+    MUTEX_DECL(mut_hgf_pos);
+
+
 public:
     //Odometry() {}
     void init();
 
+    //Accesseurs
     void set_pos(double x, double y, double theta);
 
     double get_x(void) {return _position[0];}
@@ -36,15 +47,6 @@ public:
     void update();
     void update_filters();
 
-private:
-    
-
-    Eigen::Vector3d prev_motors_pos;
-
-    Eigen::Vector3d _position;
-    Eigen::Vector3d _speed_r;
-
-    MUTEX_DECL(mut_hgf_pos);
 
 };
 

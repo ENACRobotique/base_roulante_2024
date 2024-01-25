@@ -15,7 +15,8 @@
 
 #include "messages.h"
 
-
+#define ENCODERS_PERIOD 2
+#define ODOM_PERIOD 5
 
 /*
  * LED blinker thread, times are in milliseconds.
@@ -33,7 +34,25 @@ static void blinker(void *) {
 }
 
 
+static THD_WORKING_AREA(encodersFilter, 1024);
+static void encFilter(void *) {
+  chRegSetThreadName("encodersFilter");
+  while (true) {
+    systime_t now = chVTGetSystemTime();
+    odometry.update_filters();
+    chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ENCODERS_PERIOD)));
+  }
+}
 
+static THD_WORKING_AREA(odom, 2048);
+static void odomth(void *) {
+  chRegSetThreadName("odomth");
+  while (true) {
+    systime_t now = chVTGetSystemTime();
+    odometry.update();
+    chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
+  }
+}
 
 
 int main(void) {
@@ -69,6 +88,9 @@ int main(void) {
    * Creates the blinker thread.
    */
   chThdCreateStatic(waBlinker, sizeof(waBlinker), NORMALPRIO, blinker, NULL);
+
+  chThdCreateStatic(encodersFilter, sizeof(encodersFilter), NORMALPRIO+1, encFilter, NULL);
+  chThdCreateStatic(odom, sizeof(odom), NORMALPRIO+1, odomth, NULL);
   
   // cette fonction en interne fait une boucle infinie, elle ne sort jamais
   // donc tout code situé après ne sera jamais exécuté.

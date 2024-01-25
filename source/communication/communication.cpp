@@ -89,7 +89,7 @@ static void com_rx (void *)
           }
       }
     }
-    chThdYield();
+    chThdSleepMilliseconds(1);
   }
 }
 

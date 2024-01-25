@@ -6,6 +6,19 @@
 
 class Encoder
 {
+
+private:
+    stm32_tim_t* tim;
+    int32_t offset;
+    
+    // is the counter in the lower or upper half? Will be used to detect overflow/underflow
+    bool lower_half;
+
+    HighGainFilter pos_filter;
+    double inc_to_mm;
+
+
+    
 public:
     Encoder(stm32_tim_t* tim, double inc_to_mm);
     void init(bool inverted);
@@ -21,13 +34,5 @@ public:
     //return filtered speed
     double get_speed()  { return pos_filter.get_speed(); }
 
-private:
-    stm32_tim_t* tim;
-    int32_t offset;
-    
-    // is the counter in the lower or upper half? Will be used to detect overflow/underflow
-    bool lower_half;
 
-    HighGainFilter pos_filter;
-    double inc_to_mm;
 };

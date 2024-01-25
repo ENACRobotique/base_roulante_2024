@@ -26,6 +26,9 @@ static void cmd_uid(BaseSequentialStream *lchp, int argc,const char * const argv
 static void cmd_help(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_mot(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_enc(BaseSequentialStream *lchp, int argc,const char * const argv[]);
+static void cmd_encf(BaseSequentialStream *lchp, int argc,const char * const argv[]);
+static void cmd_odom(BaseSequentialStream *lchp, int argc,const char * const argv[]);
+
 
 
 static const ShellCommand commands[] = {
@@ -36,6 +39,8 @@ static const ShellCommand commands[] = {
   {"help", cmd_help},
   {"mot", cmd_mot},
   {"enc", cmd_enc},
+  {"encf", cmd_encf},
+  {"odom", cmd_odom},
   {NULL, NULL}
 };
 
@@ -93,6 +98,42 @@ static void cmd_enc(BaseSequentialStream *lchp, int argc,const char * const argv
     break;
   }
 }
+
+static void cmd_encf(BaseSequentialStream *lchp, int argc,const char * const argv[]) {
+  (void)argv;
+  (void)argc;
+  if(argc < 1) {
+    chprintf (lchp, "Usage: encf <n>\r\n");
+    return;
+  }
+  switch (atoi(argv[0]))
+  {
+  case 1:
+    chprintf (lchp, "Encf 1: %f\r\n", enc1.get_pos());
+    break;
+  case 2:
+    chprintf (lchp, "Encf 2: %f\r\n", enc2.get_pos());
+    break;
+  case 3:
+    chprintf (lchp, "Encf 3: %f\r\n", enc3.get_pos());
+    break;
+  
+  default:
+    break;
+  }
+}
+
+static void cmd_odom(BaseSequentialStream *lchp, int argc,const char * const argv[]) {
+  (void)argv;
+  (void)argc;
+  
+
+    chprintf (lchp, "x : %f\r\n", odometry.get_x());
+    chprintf (lchp, "y : %f\r\n", odometry.get_y());
+    chprintf (lchp, "theta : %f\r\n", odometry.get_theta());
+}
+
+
 
 /*===========================================================================*/
 /* START OF PRIVATE SECTION  : DO NOT CHANGE ANYTHING BELOW THIS LINE        */

@@ -23,8 +23,8 @@
 
 
 constexpr double THETA1 = 0;
-constexpr double THETA2 = -2.0*M_PI/3.0;
-constexpr double THETA3 = 2.0*M_PI/3.0;
+constexpr double THETA2 = 2.0*M_PI/3.0;
+constexpr double THETA3 = -2.0*M_PI/3.0;
 
 // Euclidean speeds into motor speeds: m = Dv
 const Eigen::Matrix<double, 3, 3> D {
@@ -55,7 +55,7 @@ void Odometry::update() {
   Eigen::Vector3d motors_speeds = get_motors_speed();
   
 
-  // robot move in robot frame
+  //robot move in robot frame
   Eigen::Vector3d robot_move_r = Dinv * ((motors_pos - prev_motors_pos));
 
   prev_motors_pos = motors_pos;
@@ -72,7 +72,7 @@ void Odometry::update() {
     {0              , 0               , 1}
   };
 
-  // change frame from robot frame to table frame
+  // // change frame from robot frame to table frame
   Eigen::Vector3d robot_move_table = R * robot_move_r;
 
   _position += robot_move_table;
