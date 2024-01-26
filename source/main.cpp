@@ -9,14 +9,13 @@
 #include "globalVar.h"
 #include "communication.h"
 #include "motor.h"
-
+#include "holocontrol.h"
 #include "BytesReadBuffer.h"
 #include "BytesWriteBuffer.h"
-
+#include <Eigen/Core>
 #include "messages.h"
 
-#define ENCODERS_PERIOD 2
-#define ODOM_PERIOD 5
+
 
 /*
  * LED blinker thread, times are in milliseconds.
@@ -50,9 +49,22 @@ static void odomth(void *) {
   while (true) {
     systime_t now = chVTGetSystemTime();
     odometry.update();
+    
     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
   }
 }
+
+ static THD_WORKING_AREA(holo, 8192);
+ static void holoth(void *) {
+   chRegSetThreadName("holoth");
+   while (true) {
+     systime_t now = chVTGetSystemTime();  
+     holocontrol.update();
+     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
+   }
+ }
+
+
 
 
 int main(void) {
@@ -64,26 +76,34 @@ int main(void) {
   consoleInit();  // initialisation des objets liés au shell
 
   // subsystems init
+
   odometry.init();
+  holocontrol.init();
   imuStart();
-  motorsStart();
+  
   communicationStart();
+
+ 
+
+  const Eigen::Vector3d pos {0,0,10*3.14};  // 2pi = 1 tour
+  const Eigen::Vector3d vitesse {0,0,0.001};
 
 
   // communication callback example
   // TODO: remove this
-  register_callback([](protoduck::Message msg) {
-    (void)msg;
-    palToggleLine(LINE_LED1);
-    msg.clear();
-    auto& pos = msg.mutable_pos();
-    pos.set_x(enc1.get_value());
-    pos.set_y(enc2.get_value());
-    pos.set_theta(enc3.get_value());
-    post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
-  });
+  //register_callback([](protoduck::Message msg) {
+  //  (void)msg;
+  //  palToggleLine(LINE_LED1);
+  //  msg.clear();
+  //  auto& pos = msg.mutable_pos();
+  //  pos.set_x(enc1.get_value());
+  //  pos.set_y(enc2.get_value());
+  //  pos.set_theta(enc3.get_value());
+  //  post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
+  //});
 
 
+  
   /*
    * Creates the blinker thread.
    */
@@ -91,6 +111,10 @@ int main(void) {
 
   chThdCreateStatic(encodersFilter, sizeof(encodersFilter), NORMALPRIO+1, encFilter, NULL);
   chThdCreateStatic(odom, sizeof(odom), NORMALPRIO+1, odomth, NULL);
+  chThdCreateStatic(holo, sizeof(holo), NORMALPRIO+1, holoth, NULL);
+
+  holocontrol.set_cons(pos,vitesse);
+
   
   // cette fonction en interne fait une boucle infinie, elle ne sort jamais
   // donc tout code situé après ne sera jamais exécuté.

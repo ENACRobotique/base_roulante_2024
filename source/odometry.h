@@ -7,7 +7,7 @@
 #define MOTORS_NB 3
 #define PERIOD_ODOM_REPORT 200  // ms
 
-constexpr double ROBOT_RADIUS = 108.54341185440282;
+constexpr double ROBOT_RADIUS = 96;
 
 extern const Eigen::Matrix<double, 3, 3> D;
 
