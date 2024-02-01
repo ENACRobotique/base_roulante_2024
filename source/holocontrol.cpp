@@ -43,9 +43,9 @@ void HoloControl::init() {
   set_motor(1,0);
   set_motor(2,0);
 
-  _pos_cons = {0, 0, 0};
-  _speed_cons = {0, 0, 0};
-  _cmds = {0, 0, 0};
+  _pos_cons = {0., 0., 0.};
+  _speed_cons = {0., 0., 0.};
+  _cmds = {0., 0., 0.};
   }
 
 
@@ -68,7 +68,8 @@ void HoloControl::update()
   Eigen::Vector3d speed_error = _speed_cons - motors_speed;
 
   for(int i=0; i<MOTORS_NB; i++) {
-    _cmds[i] = pids[i].update_cmd((double)pos_error[i], (double)speed_error[i],ODOM_PERIOD);
+    _cmds[i] = pids[i].update((double)pos_error[i], (double)speed_error[i]);
+  
   }
   
     set_motor(0,_cmds[0]);

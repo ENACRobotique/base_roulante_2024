@@ -10,6 +10,8 @@ constexpr uint32_t PWM_FREQ = 50000;
 constexpr pwmcnt_t PWM_PERIOD = 250;
 
 
+
+
 PWMConfig pwmcfg1 = {
   .frequency = PWM_FREQ,
   .period = PWM_PERIOD,
@@ -51,18 +53,15 @@ void set_motor(int num_mot,double speed){
         palWriteLine(numMoteur[num_mot], PAL_HIGH);
     }
 
-    if (fabs(speed)> 10){
-        speed = 10;
-    }
-    if (fabs(speed)>3 && fabs(speed)<5){
-      speed = 5;
-    }
-    if (fabs(speed)<=3){
-      speed = 0;
-    }
-    pwmcnt_t width = (fabs(speed)/100)*PWM_PERIOD;
+    // if (fabs(speed)> MAX_SPEED){
+    //    speed = MAX_SPEED;
+    // }
 
-    
+    if (fabs(speed)> 20){
+       speed = 20;
+    }
+
+    pwmcnt_t width = (fabs(speed)/MAX_SPEED)*PWM_PERIOD;
 
     pwmEnableChannel(&PWMD1, pwmChannel[num_mot], width);
 
