@@ -115,3 +115,15 @@ bool BytesReadBuffer::push(uint8_t& byte)
   return return_value;
 }
 
+ bool BytesReadBuffer::push(uint8_t* bytes, int length){
+  bool return_value = MAX_SIZE >= length + write_index_;
+  if(return_value)
+  {
+    for (int i=write_index_; i < write_index_ + length; i++){
+      data_[i] = bytes[i];
+      ++write_index_;
+    }
+  }
+  return return_value;
+}
+
