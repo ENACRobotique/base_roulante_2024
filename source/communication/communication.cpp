@@ -106,6 +106,12 @@ static void com_tx (void *) {
         uint32_t buf_size = buffer->get_size();
         uint8_t* data = buffer->get_data();
 
+        if (buf_size > 255){
+          buffer->clear();
+          (void)chMBPostTimeout(&mb_free_msgs, (msg_t)buffer, 0);
+          continue;
+        }
+
         uint8_t chk = 0;
         for(size_t i=0; i<buf_size; i++) {
             chk ^= data[i];
@@ -118,7 +124,7 @@ static void com_tx (void *) {
         for (int i=0; i<buf_size; i++){
           full_message[i+3] = data[i];
         }
-        full_message[-1] = chk;
+        full_message[buf_size +3] = chk;
 
         sdWrite(&SD4, full_message, buf_size +4);
         
@@ -138,7 +144,7 @@ static void com_tx (void *) {
 /**
  *  Received message from serial.
  *  Returns COM_OK if a message is available.
- */RcvState
+ */
 static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer) {
     dmsg.clear();
     static enum RcvState _rcv_state = _RCV_START1ST;
