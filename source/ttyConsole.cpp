@@ -28,10 +28,12 @@ static void cmd_mot(BaseSequentialStream *lchp, int argc,const char * const argv
 static void cmd_enc(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_encf(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_odom(BaseSequentialStream *lchp, int argc,const char * const argv[]);
+static void cmd_guidance(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 
 
 
 static const ShellCommand commands[] = {
+  
   {"mem", cmd_mem},
   {"threads", cmd_threads},
   //{"rtc", cmd_rtc},
@@ -41,6 +43,7 @@ static const ShellCommand commands[] = {
   {"enc", cmd_enc},
   {"encf", cmd_encf},
   {"odom", cmd_odom},
+  {"goto", cmd_guidance},
   {NULL, NULL}
 };
 
@@ -133,6 +136,17 @@ static void cmd_odom(BaseSequentialStream *lchp, int argc,const char * const arg
     chprintf (lchp, "theta : %f\r\n", odometry.get_theta());
 }
 
+
+static void cmd_guidance(BaseSequentialStream *lchp, int argc,const char * const argv[]) {
+  (void)argv;
+  (void)argc;
+  
+  const Eigen::Vector3d pos {atoi(argv[0]),atoi(argv[1]),atoi(argv[2])};  // 2pi = 1 tour
+  const Eigen::Vector3d vitesse {atoi(argv[3]),atoi(argv[4]),atoi(argv[5])};
+
+  holocontrol.set_cons(pos,vitesse);
+
+}
 
 
 /*===========================================================================*/

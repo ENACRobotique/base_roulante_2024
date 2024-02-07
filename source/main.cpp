@@ -17,6 +17,8 @@
 
 
 
+
+
 /*
  * LED blinker thread, times are in milliseconds.
  */
@@ -60,6 +62,9 @@ static void odomth(void *) {
    while (true) {
      systime_t now = chVTGetSystemTime();  
      holocontrol.update();
+
+  
+    
      chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
    }
  }
@@ -80,13 +85,16 @@ int main(void) {
   odometry.init();
   holocontrol.init();
   imuStart();
+
+
+  
   
   communicationStart();
 
  
 
-  const Eigen::Vector3d pos {0,0,10*3.14};  // 2pi = 1 tour
-  const Eigen::Vector3d vitesse {0,0,0.001};
+  const Eigen::Vector3d pos {1000,0,0};  // 2pi = 1 tour
+  const Eigen::Vector3d vitesse {20,0,0};
 
 
   // communication callback example
@@ -113,12 +121,15 @@ int main(void) {
   chThdCreateStatic(odom, sizeof(odom), NORMALPRIO+1, odomth, NULL);
   chThdCreateStatic(holo, sizeof(holo), NORMALPRIO+1, holoth, NULL);
 
+
   holocontrol.set_cons(pos,vitesse);
 
   
+
   // cette fonction en interne fait une boucle infinie, elle ne sort jamais
   // donc tout code situé après ne sera jamais exécuté.
   consoleLaunch();  // lancement du shell
+
 
   // main thread does nothing
   chThdSleep(TIME_INFINITE);
