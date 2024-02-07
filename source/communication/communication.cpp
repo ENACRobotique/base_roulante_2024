@@ -10,6 +10,8 @@
 
 #define MAX_SIZE 50
 
+uint8_t Timeout_rx = chTimeMS2I(100);
+
 
 BytesWriteBuffer msgBuffer[NUM_MESSAGES];
 
@@ -104,24 +106,30 @@ static void com_tx (void *) {
         uint32_t buf_size = buffer->get_size();
         uint8_t* data = buffer->get_data();
 
+        if (buf_size > 255){
+          buffer->clear();
+          (void)chMBPostTimeout(&mb_free_msgs, (msg_t)buffer, 0);
+          continue;
+        }
+
         uint8_t chk = 0;
         for(size_t i=0; i<buf_size; i++) {
             chk ^= data[i];
         }
 
+        uint8_t full_message[buf_size + 4];
+        full_message[0] = 255;
+        full_message[1] = 255;
+        full_message[2] = buf_size;
+        for (int i=0; i<buf_size; i++){
+          full_message[i+3] = data[i];
+        }
+        full_message[buf_size +3] = chk;
+
+        sdWrite(&SD4, full_message, buf_size +4);
+        
         /**
-         * 
-         * 
-         * 
-         * 
-         * 
          * envoie la trame : 0XFF, 0XFF, LEN, PAYLOAD, CHK
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
         */
 
         buffer->clear();
@@ -140,16 +148,30 @@ static void com_tx (void *) {
 static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer) {
     dmsg.clear();
     static enum RcvState _rcv_state = _RCV_START1ST;
-
-    /**
-     * 
-     * 
-     * 
+    uint8_t buf[50];
+    sdReadTimeout(&SD4, buf, 1, TIME_INFINITE);
+    if (buf[0] == 255){ // first start byte
+      if (sdReadTimeout(&SD4, buf, 1, Timeout_rx) != 1) return COM_NO_MSG;
+      if (buf[0] == 255){ // second start byte
+        if (sdReadTimeout(&SD4, buf, 1, Timeout_rx) != 1) return COM_NO_MSG; // length byte
+        int msg_length = (int) buf[0];
+        if (sdReadTimeout(&SD4, buf, msg_length, Timeout_rx * msg_length) != msg_length) return COM_NO_MSG; // message bytes (maybe reduce timeout)
+        read_buffer.push(buf, msg_length);
+        uint8_t check_sum = 0;
+        for (size_t i=0; i <msg_length; i++){
+          check_sum ^= buf[i];
+        }
+        if (sdReadTimeout(&SD4, buf, 1, Timeout_rx) != 1) return COM_NO_MSG; // check_sum byte
+        if (check_sum == buf[0]){
+          dmsg.deserialize(read_buffer);
+          return COM_OK;
+        }
+      }
+    }
+    
+    /*
      *  décode la trame : 0XFF, 0XFF, LEN, PAYLOAD, CHK
      * (et vérifie la checksum)
-     * 
-     * 
-     * 
     */
 
     return COM_NO_MSG;

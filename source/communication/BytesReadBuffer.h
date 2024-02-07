@@ -73,6 +73,8 @@ class BytesReadBuffer : public ::EmbeddedProto::ReadBufferInterface
     //! Push new data into the buffer.
     bool push(uint8_t& byte);
 
+    bool push(uint8_t* byte, int length);
+
   private:
 
     //! The array in which the data received over uart is stored.
