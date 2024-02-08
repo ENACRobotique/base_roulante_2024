@@ -11,8 +11,16 @@ constexpr double VMAX = 200; //   mm/s
 void Guidance::set_target(Eigen::Vector3d pos){
     start_pos = odometry.get_pos();
     target_pos= pos;
+
+    while (target_pos[2] - start_pos[2] > M_PI){
+        target_pos[2] -= 2*M_PI;
+    }
+    while (target_pos[2] - start_pos[2] < -M_PI){
+        target_pos[2] += 2*M_PI;
+    }
+
     start_time = chVTGetSystemTime();
-    double d = sqrt(pow(target_pos[0] - start_pos[0],2) + pow(target_pos[1]-start_pos[1],2) + 100*pow(target_pos[2] - start_pos[2],2));
+    double d = sqrt(pow(target_pos[0] - start_pos[0],2) + pow(target_pos[1]-start_pos[1],2) + 200*pow(target_pos[2] - start_pos[2],2));
     estimated_time= d/VMAX;
     state = GuidanceState::RUNNING;
     
@@ -55,7 +63,6 @@ void Guidance::update(){
             // pos.set_y(posCarrotW[1]);
             // pos.set_theta(posCarrotW[2]);
             // pos.set_obj(Pos::PosObject::POS_CARROT_W);
-
             // post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
 
         } else {

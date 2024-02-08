@@ -226,7 +226,7 @@ $(PROTO_GEN_DIR)/%.h: %.proto
 
 $(PROTO_GEN_DIR_PYTHON)/%_pb2.py: %.proto
 	mkdir -p $(PROTO_GEN_DIR_PYTHON)
-	$(PROTOC) -I=$(PROTO_DIR) --python_out=$(PROTO_GEN_DIR_PYTHON)  proto/messages.proto
+	$(PROTOC) -I=$(PROTO_DIR) --python_out=$(PROTO_GEN_DIR_PYTHON)  $<
 
 
 flash: build/ch.elf

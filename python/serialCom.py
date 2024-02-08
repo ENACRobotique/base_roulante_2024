@@ -5,7 +5,8 @@ from serial import Serial
 from serial.threaded import Protocol, ReaderThread
 import time
 from enum import Enum
-import messages_pb2 as pb
+import messages_pb2 as llpb
+import robot_state_pb2 as hgpb
 import json
 import socket
 import struct
@@ -13,6 +14,7 @@ import math
 
 import ecal.core.core as ecal_core
 from ecal.core.publisher import ProtoPublisher
+from ecal.core.subscriber import ProtoSubscriber
 
 plotjuggler_udp = ("127.0.0.1", 9870)
 
@@ -30,7 +32,15 @@ class Duckoder(Protocol):
         self._buffer = b'  '
         self._rx_state = RxState.IDLE
         self._msg_rcv = None
-        self.so = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.send_plotjuggler = True
+        if self.send_plotjuggler:
+            self.so = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        ecal_core.initialize(sys.argv, "Bridge low level")
+        self.odom_pos_pub = ProtoPublisher("odom_pos", hgpb.Position)
+        self.carrot_pos_pub = ProtoPublisher("carrot_pos", hgpb.Position)
+        self.target_pos_sub = ProtoSubscriber("set_position", hgpb.Position)
+        self.target_pos_sub.set_callback(self.set_target)
+        
 
     def connection_made(self, transport):
         self.transport = transport
@@ -38,13 +48,18 @@ class Duckoder(Protocol):
     def data_received(self, data):
         for c in data:
             if self._decode(c.to_bytes(1, 'little')):
-                m = pb.Message.FromString(self._msg_rcv)
+                m = llpb.Message.FromString(self._msg_rcv)
+                if self.send_plotjuggler:
+                    jj = self.msg_to_json(m)
+                    self.so.sendto(jj.encode(), plotjuggler_udp)
                 topic = m.WhichOneof('inner')
-                if topic == "pos" and m.msg_type == pb.Message.MsgType.STATUS:
-                    pub.send(m.pos)
-                jj = self.msg_to_json(m)
-                self.so.sendto(jj.encode(), plotjuggler_udp)
-                #print(jj)
+                if topic == "pos" and m.msg_type == llpb.Message.MsgType.STATUS:
+                    hgm = hgpb.Position(x=m.pos.x,y=m.pos.y,theta=m.pos.theta)
+                    if m.pos.obj == llpb.Pos.PosObject.POS_ROBOT_W:
+                        self.odom_pos_pub.send(hgm)
+                    elif m.pos.obj == llpb.Pos.PosObject.POS_CARROT_W:
+                        self.carrot_pos_pub.send(hgm)
+                
 
     def _decode(self, c):
         ret = False
@@ -75,7 +90,6 @@ class Duckoder(Protocol):
     def msg_to_json(self, msg):
         msg_name = msg.WhichOneof('inner')
         inner = getattr(msg, msg_name)
-        #popo = msg_name
         if msg_name == 'motors':
             msg_name = msg.motors.MotorDataType.Name(msg.motors.type)
         elif msg_name == 'pos':
@@ -87,21 +101,28 @@ class Duckoder(Protocol):
         return json.dumps(d)
 
 
-def send_message(ser: Serial, msg: pb.Message):
-    payload = msg.SerializeToString()
-    lenght = len(payload)
-    crc = 0
-    for b in payload:
-        crc ^= b
-    buffer = struct.pack('<BBB', 0xFF, 0xFF, lenght) + payload + struct.pack('<B', crc)
-    # print([c for c in buffer])
-    ser.write(buffer)
+    def send_message(self, msg: llpb.Message):
+        payload = msg.SerializeToString()
+        lenght = len(payload)
+        crc = 0
+        for b in payload:
+            crc ^= b
+        buffer = struct.pack('<BBB', 0xFF, 0xFF, lenght) + payload + struct.pack('<B', crc)
+        # print([c for c in buffer])
+        self.transport.write(buffer)
+    
+    def set_target(self, topic_name, hlm, time):
+        print(hlm)
+        llmsg = llpb.Message()
+        llmsg.msg_type = llpb.Message.MsgType.COMMAND
+        llmsg.pos.x = hlm.x
+        llmsg.pos.y = hlm.y
+        llmsg.pos.theta = hlm.theta
+        llmsg.pos.obj = llpb.Pos.PosObject.POS_ROBOT_W
+        print(llmsg)
+        self.send_message(llmsg)
 
 
-def get_ex():
-    m = pb.Message()
-    m.bat.voltage = 23
-    return m
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -110,24 +131,16 @@ if __name__ == "__main__":
     port = sys.argv[1]
     baudrate = 115200
 
-    ecal_core.initialize(sys.argv, "Bridge low level")
-    pub = ProtoPublisher("robot_pos", pb.Pos)
-
 
     ser=Serial(port, baudrate)
     with ReaderThread(ser, Duckoder) as p:
-        t0 = time.time()
-        c = 0
-        time.sleep(1)
         while True:
-            msg = pb.Message()
-            dt = time.time() - t0
-            msg.pos.x = 200 if c%2 == 0 else 2
-            msg.pos.y = 2
-            msg.pos.theta = 0.1
-            msg.msg_type = pb.Message.MsgType.COMMAND
-            send_message(ser, msg)
-            print(msg)
-            c += 1
+            # msg = llpb.Message()
+            # msg.pos.x = 600
+            # msg.pos.y = 2
+            # msg.pos.theta = 0.1
+            # msg.msg_type = llpb.Message.MsgType.COMMAND
+            # p.send_message(msg)
+            # print(msg)
             time.sleep(8)
 
