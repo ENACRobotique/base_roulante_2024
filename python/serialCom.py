@@ -11,6 +11,9 @@ import socket
 import struct
 import math
 
+import ecal.core.core as ecal_core
+from ecal.core.publisher import ProtoPublisher
+
 plotjuggler_udp = ("127.0.0.1", 9870)
 
 
@@ -37,6 +40,8 @@ class Duckoder(Protocol):
             if self._decode(c.to_bytes(1, 'little')):
                 m = pb.Message.FromString(self._msg_rcv)
                 topic = m.WhichOneof('inner')
+                if topic == "pos" and m.msg_type == pb.Message.MsgType.STATUS:
+                    pub.send(m.pos)
                 jj = self.msg_to_json(m)
                 self.so.sendto(jj.encode(), plotjuggler_udp)
                 #print(jj)
@@ -104,6 +109,9 @@ if __name__ == "__main__":
         exit(1)
     port = sys.argv[1]
     baudrate = 115200
+
+    ecal_core.initialize(sys.argv, "Bridge low level")
+    pub = ProtoPublisher("robot_pos", pb.Pos)
 
 
     ser=Serial(port, baudrate)
