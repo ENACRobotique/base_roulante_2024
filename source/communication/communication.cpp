@@ -10,8 +10,9 @@
 
 #define MAX_SIZE 50
 
-uint8_t Timeout_rx = chTimeMS2I(100);
+uint8_t Timeout_rx = chTimeMS2I(20);
 
+uint8_t full_message[MAX_SIZE+4];
 
 BytesWriteBuffer msgBuffer[NUM_MESSAGES];
 
@@ -41,11 +42,7 @@ static void com_rx (void *);
 static void com_tx (void *);
 
 
-void comm_init() {
-    sdStart(&SD4, &serialConfig);
-}
-
-static THD_WORKING_AREA(waComRx, 1024);
+static THD_WORKING_AREA(waComRx, 2048);
 static THD_WORKING_AREA(waComTx, 1024);
 void communicationStart() {
   sdStart(&SD4, &serialConfig);
@@ -61,14 +58,13 @@ void communicationStart() {
 }
 
 
-
 void register_callback(msg_callback_t cb) {
-    for(size_t i=0; i<NUM_CALLBACKS; i++) {
-        if(!callbacks[i]) {
-            callbacks[i] = cb;
-            break;
-        }
+  for(size_t i=0; i<NUM_CALLBACKS; i++) {
+    if(!callbacks[i]) {
+      callbacks[i] = cb;
+      break;
     }
+  }
 }
 
 
@@ -86,57 +82,51 @@ static void com_rx (void *)
     int ret = check_messages(msg, read_buffer);
     if(ret == COM_OK) {
       for(size_t i=0; i<NUM_CALLBACKS; i++) {
-          if(callbacks[i]) {
-              callbacks[i](msg);
-          }
+        if(callbacks[i]) {
+          callbacks[i](msg);
+        }
       }
     }
-    chThdSleepMilliseconds(1);
   }
 }
 
 
+// send throught UART all messages ready to be sent.
 static void com_tx (void *) {
   chRegSetThreadName("com_tx");
   BytesWriteBuffer *buffer;
-  while (true) {    // the while(true) is probably useless...
-    // send throught UART all messages ready to be sent.
+  while (true) {
     // get a filled buffer.
-    while(chMBFetchTimeout(&mb_filled_msgs, (msg_t *)&buffer, TIME_INFINITE) == MSG_OK) {
-        uint32_t buf_size = buffer->get_size();
-        uint8_t* data = buffer->get_data();
+    chMBFetchTimeout(&mb_filled_msgs, (msg_t *)&buffer, TIME_INFINITE);
+    uint32_t buf_size = buffer->get_size();
+    uint8_t* data = buffer->get_data();
 
-        if (buf_size > 255){
-          buffer->clear();
-          (void)chMBPostTimeout(&mb_free_msgs, (msg_t)buffer, 0);
-          continue;
-        }
-
-        uint8_t chk = 0;
-        for(size_t i=0; i<buf_size; i++) {
-            chk ^= data[i];
-        }
-
-        uint8_t full_message[buf_size + 4];
-        full_message[0] = 255;
-        full_message[1] = 255;
-        full_message[2] = buf_size;
-        for (int i=0; i<buf_size; i++){
-          full_message[i+3] = data[i];
-        }
-        full_message[buf_size +3] = chk;
-
-        sdWrite(&SD4, full_message, buf_size +4);
-        
-        /**
-         * envoie la trame : 0XFF, 0XFF, LEN, PAYLOAD, CHK
-        */
-
-        buffer->clear();
-        // return buffer to the free buffers pool.
-        // can't fail right ? Just fetched a message, and filled and free have the same size
-        (void)chMBPostTimeout(&mb_free_msgs, (msg_t)buffer, 0);
+    if (buf_size > 255){
+      buffer->clear();
+      (void)chMBPostTimeout(&mb_free_msgs, (msg_t)buffer, TIME_IMMEDIATE);
+      continue;
     }
+
+    uint8_t chk = 0;
+    for(size_t i=0; i<buf_size; i++) {
+      chk ^= data[i];
+    }
+
+    
+    full_message[0] = 0xFF;
+    full_message[1] = 0xFF;
+    full_message[2] = buf_size;
+    for (size_t i=0; i<buf_size; i++){
+      full_message[i+3] = data[i];
+    }
+    full_message[buf_size +3] = chk;
+
+    sdWrite(&SD4, full_message, buf_size +4);
+
+    buffer->clear();
+    // return buffer to the free buffers pool.
+    // can't fail right ? Just fetched a message, and filled and free have the same size
+    (void)chMBPostTimeout(&mb_free_msgs, (msg_t)buffer, TIME_IMMEDIATE);
   }
 }
 
@@ -146,35 +136,48 @@ static void com_tx (void *) {
  *  Returns COM_OK if a message is available.
  */
 static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer) {
-    dmsg.clear();
-    static enum RcvState _rcv_state = _RCV_START1ST;
-    uint8_t buf[50];
-    sdReadTimeout(&SD4, buf, 1, TIME_INFINITE);
-    if (buf[0] == 255){ // first start byte
-      if (sdReadTimeout(&SD4, buf, 1, Timeout_rx) != 1) return COM_NO_MSG;
-      if (buf[0] == 255){ // second start byte
-        if (sdReadTimeout(&SD4, buf, 1, Timeout_rx) != 1) return COM_NO_MSG; // length byte
-        int msg_length = (int) buf[0];
-        if (sdReadTimeout(&SD4, buf, msg_length, Timeout_rx * msg_length) != msg_length) return COM_NO_MSG; // message bytes (maybe reduce timeout)
-        read_buffer.push(buf, msg_length);
-        uint8_t check_sum = 0;
-        for (size_t i=0; i <msg_length; i++){
-          check_sum ^= buf[i];
-        }
-        if (sdReadTimeout(&SD4, buf, 1, Timeout_rx) != 1) return COM_NO_MSG; // check_sum byte
-        if (check_sum == buf[0]){
-          dmsg.deserialize(read_buffer);
-          return COM_OK;
-        }
-      }
-    }
-    
-    /*
-     *  décode la trame : 0XFF, 0XFF, LEN, PAYLOAD, CHK
-     * (et vérifie la checksum)
-    */
+  static uint8_t rx_buf[50] = {0};
+  rx_buf[0] = rx_buf[1] = 0;
 
+  while((rx_buf[0] != 0xFF) || (rx_buf[1] =! 0xFF)) {
+    rx_buf[0] = rx_buf[1];
+    sdReadTimeout(&SD4, rx_buf, 1, TIME_INFINITE);
+  }
+  
+  if (sdReadTimeout(&SD4, &rx_buf[1], 1, Timeout_rx) != 1) {
     return COM_NO_MSG;
+  }
+
+  if (sdReadTimeout(&SD4, &rx_buf[2], 1, Timeout_rx) != 1) {
+    return COM_NO_MSG; // length byte
+  }
+
+  uint32_t msg_length = rx_buf[2];
+
+  if (sdReadTimeout(&SD4, &rx_buf[3], msg_length, Timeout_rx) != msg_length){
+    return COM_NO_MSG; // message bytes
+  }
+
+  read_buffer.clear();
+  read_buffer.push(&rx_buf[3], msg_length);
+  uint8_t check_sum = 0;
+  for (size_t i=0; i <msg_length; i++){
+    check_sum ^= rx_buf[i+3];
+  }
+  uint8_t chk_rcv;
+  if (sdReadTimeout(&SD4, &chk_rcv, 1, Timeout_rx) != 1) {
+    return COM_NO_MSG; // check_sum byte
+  }
+  if (check_sum == chk_rcv){
+    dmsg.clear();
+    dmsg.deserialize(read_buffer);
+    return COM_OK;
+  } else {
+    return COM_ERROR;
+  }
+
+
+  return COM_NO_MSG;
 }
 
 

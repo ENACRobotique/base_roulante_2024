@@ -9,6 +9,7 @@ import messages_pb2 as pb
 import json
 import socket
 import struct
+import math
 
 plotjuggler_udp = ("127.0.0.1", 9870)
 
@@ -38,11 +39,32 @@ class Duckoder(Protocol):
                 topic = m.WhichOneof('inner')
                 jj = self.msg_to_json(m)
                 self.so.sendto(jj.encode(), plotjuggler_udp)
-                print(jj)
+                #print(jj)
 
     def _decode(self, c):
         ret = False
-        # décode la trame !
+        self._buffer += c
+        match self._rx_state:
+            case RxState.IDLE:
+                if self._buffer[-1] == 0xFF and self._buffer[-2] == 0xFF:
+                    self._buffer = self._buffer[-2:]
+                    self._rx_state = RxState.HEAD_OK
+            case RxState.HEAD_OK:
+                self._expected_bytes = ord(c)+1
+                self._rx_state = RxState.GOT_LENGTH
+            case  RxState.GOT_LENGTH:
+                self._expected_bytes -= 1
+                if self._expected_bytes == 0:
+                    chk = 0
+                    for c in self._buffer[3:-1]:
+                        chk ^= c
+                    if chk == self._buffer[-1]:
+                        ret = True
+                        self._msg_rcv = self._buffer[3:-1]
+                    else:
+                        print("chk failed")
+                    self._buffer = b'  '
+                    self._rx_state = RxState.IDLE
         return ret
 
     def msg_to_json(self, msg):
@@ -61,9 +83,14 @@ class Duckoder(Protocol):
 
 
 def send_message(ser: Serial, msg: pb.Message):
-    # encode la trame !
-    # Utilise struct, c'est pratique: https://docs.python.org/3/library/struct.html
-    ser.write(b'')
+    payload = msg.SerializeToString()
+    lenght = len(payload)
+    crc = 0
+    for b in payload:
+        crc ^= b
+    buffer = struct.pack('<BBB', 0xFF, 0xFF, lenght) + payload + struct.pack('<B', crc)
+    # print([c for c in buffer])
+    ser.write(buffer)
 
 
 def get_ex():
@@ -78,13 +105,21 @@ if __name__ == "__main__":
     port = sys.argv[1]
     baudrate = 115200
 
+
     ser=Serial(port, baudrate)
     with ReaderThread(ser, Duckoder) as p:
-        a = 3
+        t0 = time.time()
+        c = 0
+        time.sleep(1)
         while True:
             msg = pb.Message()
-            msg.bat.voltage = a
-            a += 0.1
+            dt = time.time() - t0
+            msg.pos.x = 200 if c%2 == 0 else 2
+            msg.pos.y = 2
+            msg.pos.theta = 0.1
+            msg.msg_type = pb.Message.MsgType.COMMAND
             send_message(ser, msg)
-            time.sleep(0.1)
+            print(msg)
+            c += 1
+            time.sleep(8)
 
