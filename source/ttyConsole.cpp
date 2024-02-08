@@ -141,11 +141,11 @@ static void cmd_guidance(BaseSequentialStream *lchp, int argc,const char * const
   (void)argv;
   (void)argc;
   
-  const Eigen::Vector3d pos {atoi(argv[0]),atoi(argv[1]),atoi(argv[2])};  // 2pi = 1 tour
-  const Eigen::Vector3d vitesse {atoi(argv[3]),atoi(argv[4]),atoi(argv[5])};
+  const Eigen::Vector3d pos {atof(argv[0]),atof(argv[1]),atof(argv[2])};  // 2pi = 1 tour
+  const Eigen::Vector3d vitesse {atof(argv[3]),atof(argv[4]),atof(argv[5])};
 
   holocontrol.set_cons(pos,vitesse);
-
+  chprintf (lchp, "Ok\r\n");
 }
 
 

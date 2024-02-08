@@ -53,7 +53,7 @@ void HoloControl::init() {
  * pos: position setpoint in robot frame
  * speed: speed setpoint in robot frame, relative to earth
 */
-void HoloControl::set_cons(Eigen::Vector3d posRobotR, Eigen::Vector3d vRobotR)
+void HoloControl::set_cons(const Eigen::Vector3d& posRobotR, const Eigen::Vector3d& vRobotR)
 {  
     _pos_cons = (D * posRobotR) + odometry.get_motors_pos();
     _speed_cons = D * vRobotR;

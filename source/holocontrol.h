@@ -25,7 +25,7 @@ public:
     HoloControl(){};
     void init();
 
-    void set_cons(Eigen::Vector3d posRobotR, Eigen::Vector3d vRobotR);
+    void set_cons(const Eigen::Vector3d& posRobotR, const Eigen::Vector3d& vRobotR);
     void update();
 
     Eigen::Vector3d get_cmds() { return _cmds;}
