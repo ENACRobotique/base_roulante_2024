@@ -16,7 +16,7 @@
 #include "messages.h"
 #include "communication/telemetry.h"
 #include "guidance.h"
-
+#include "voltage_monitor.h"
 
 
 
@@ -87,6 +87,7 @@ int main(void) {
   imuStart();
   communicationStart();
   telemetryStart();
+  voltageMonitorStart();
   
 
   register_callback(pos_cons_cb);
