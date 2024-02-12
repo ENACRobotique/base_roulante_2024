@@ -17,7 +17,7 @@
 #include "communication/telemetry.h"
 #include "guidance.h"
 #include "voltage_monitor.h"
-
+#include "ins.h"
 
 
 /*
@@ -85,6 +85,7 @@ int main(void) {
   guidance.init();
 
   imuStart();
+  insStart();
   communicationStart();
   telemetryStart();
   voltageMonitorStart();

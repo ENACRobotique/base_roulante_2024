@@ -49,6 +49,11 @@ message Bat {
   float voltage = 1;
 }
 
+message Ins {
+  float theta = 1;
+  float bias = 2;
+  float variance = 3;
+}
 
 message Message {
 
@@ -64,6 +69,7 @@ message Message {
     Motors motors = 6;
     MotorPid motor_pid = 9;
     Bat bat = 10;
+    Ins ins = 11;
   }
 }
 
