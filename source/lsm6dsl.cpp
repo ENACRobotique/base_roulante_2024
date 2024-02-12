@@ -2,12 +2,12 @@
 #include "hal.h"
 #include "stdutil.h"
 #include "lms6dsl_reg.h"
-
+#include "messages.h"
+#include "communication.h"
 
 #define LSM6DSL_SENSOR_ODR  LSM6DSL_ODR_833Hz
 #define LSM6DSL_FIFO_ODR    LSM6DSL_FIFO_CTRL5_ODR_833Hz
 
-#define IMU_DATA_NB 240
 imu_data_t imu_data_buffer[IMU_DATA_NB];
 int imu_data_write_index = 0;
 int imu_data_read_index = 0;
@@ -92,24 +92,18 @@ void readFIFO() {
       spiSelect(&SPID1);
       spiExchange(&SPID1, words_to_read*2+1, txbuf, rxbuf);
 
-      float mean = 0;
       for(int i=0; i<words_to_read/6; i++) {
         imu_data_t* data = &imu_data_buffer[imu_data_write_index];
 
-        data->gx  = *((int16_t*)&rxbuf[1+12*i + 0])  * 1000.0 / powf(2, 15);
-        data->gy  = *((int16_t*)&rxbuf[1+12*i + 2])  * 1000.0 / powf(2, 15);
-        data->gz  = *((int16_t*)&rxbuf[1+12*i + 4])  * 1000.0 / powf(2, 15);
+        data->gx  = *((int16_t*)&rxbuf[1+12*i + 0])  * 500.0 / powf(2, 15);
+        data->gy  = *((int16_t*)&rxbuf[1+12*i + 2])  * 500.0 / powf(2, 15);
+        data->gz  = *((int16_t*)&rxbuf[1+12*i + 4])  * 500.0 / powf(2, 15);
         data->xlx = *((int16_t*)&rxbuf[1+12*i + 6])  / powf(2, 15) * 2;
         data->xly = *((int16_t*)&rxbuf[1+12*i + 8])  / powf(2, 15) * 2;
         data->xlz = *((int16_t*)&rxbuf[1+12*i + 10]) / powf(2, 15) * 2;
 
         imu_data_write_index = (imu_data_write_index + 1) % IMU_DATA_NB;
-
-        mean = 0.9* mean + 0.1*data->gz;
-        // int16_t gz = (rxbuf[1+12*i + 5]<<8) | rxbuf[1+12*i + 4];
-        // DebugTrace("%d", gz);
       }
-      //DebugTrace("FIFO data: %f  %d", mean, imu_data_write_index);
       palToggleLine(LINE_LED1);
     }
   }
@@ -140,12 +134,13 @@ static void imu(void *) {
   // configure IMU
 
   writeRegister(LSM6DSL_CTRL1_XL, LSM6DSL_SENSOR_ODR | LSM6DSL_ACC_FULLSCALE_2G);
-  writeRegister(LSM6DSL_CTRL2_G, LSM6DSL_SENSOR_ODR | LSM6DSL_GYRO_FS_250);
+  writeRegister(LSM6DSL_CTRL2_G, LSM6DSL_SENSOR_ODR | LSM6DSL_GYRO_FS_500);
   writeRegister(LSM6DSL_CTRL3_C, LSM6DSL_BDU_BLOCK_UPDATE | LSM6DSL_IF_INC_ENABLED);
 
-  writeRegister(LSM6DSL_FIFO_CTRL1, 120);
+  writeRegister(LSM6DSL_FIFO_CTRL1, 60);
   writeRegister(LSM6DSL_FIFO_CTRL2, 0);
   writeRegister(LSM6DSL_FIFO_CTRL3, LSM6DSL_GYRO_FIFO_CTRL3_DEC_1 | LSM6DSL_ACC_FIFO_CTRL3_DEC_1); //needed ?
+  writeRegister(LSM6DSL_FIFO_CTRL4, 0);
   writeRegister(LSM6DSL_FIFO_CTRL5, LSM6DSL_FIFO_ODR | LSM6DSL_FIFO_CTRL5_MODE_CONTINUOUS);
 
   writeRegister(LSM6DSL_INT1_CTRL, LSM6DSL_INT1_CTRL_FTH | LSM6DSL_INT1_CTRL_FIFO_OVR | LSM6DSL_INT1_CTRL_FULL_FLAG);
@@ -160,18 +155,7 @@ static void imu(void *) {
     writeRegister(LSM6DSL_FIFO_CTRL5, LSM6DSL_FIFO_ODR | LSM6DSL_FIFO_CTRL5_MODE_CONTINUOUS);
   }
 
-  // TEST direct read
-  //writeRegister(LSM6DSL_FIFO_CTRL5, LSM6DSL_FIFO_ODR | LSM6DSL_FIFO_CTRL5_MODE_BYPASS);
-
   while(true) {
-    // TEST direct read
-    // txbuf[0] = LSM6DSL_OUTZ_L_G | 0x80;
-    // spiSelect(&SPID1);
-    // spiExchange(&SPID1, 5, txbuf, rxbuf);
-    // int16_t gz = (rxbuf[2]<<8) | rxbuf[1];
-    // DebugTrace("%d", gz);
-    // chThdSleepMilliseconds(1);
-
     msg_t ret = palWaitLineTimeout(LINE_IMU_INT1, chTimeMS2I(500));
     if(ret == MSG_OK) {
       readFIFO();
