@@ -8,15 +8,21 @@ RunningStat stat;
 
 #define NB_ALIGN_SAMPLES 2000
 
+constexpr double scale_factor = 1.1842105263157894;
+constexpr double rate = 833.0;
+
 size_t align = NB_ALIGN_SAMPLES;
+
+
+double ins_vtheta = 0;
+double ins_theta = 0;
+double bias = 0;
+
 
 static THD_WORKING_AREA(waINS, 512);
 static void ins(void *) {
 
     chThdSleepMilliseconds(3000);
-
-    double theta = 0;
-    double bias = 0;
 
     while(true) {
         while((imu_data_read_index+1)%IMU_DATA_NB != imu_data_write_index) {
@@ -29,21 +35,14 @@ static void ins(void *) {
                 bias += (double)data.gz / NB_ALIGN_SAMPLES;
                 stat.Push(data.gz);
                 if(align == 1) {
-                    theta = 0;
+                    ins_theta = 0;
                 }
             } else {
-                theta += ((double)data.gz - bias) / 833.0;
+                ins_vtheta = ((double)data.gz - bias) * scale_factor;
+                ins_theta += ins_vtheta / rate;
+                // ins_theta += ((double)data.gz - bias) / 833.0 * scale_factor;
             }
         }
-
-
-        float theta_out = theta / 304.0 * 360.0;
-        Message msg;
-        auto& ins = msg.mutable_ins();
-        ins.set_theta((float)theta_out);
-        ins.set_bias((float)bias);
-        ins.set_variance(stat.Variance());
-        post_message(msg, protoduck::Message::MsgType::STATUS, TIME_IMMEDIATE);
 
         chThdSleepMilliseconds(5);
     }
@@ -52,4 +51,23 @@ static void ins(void *) {
 
 void insStart() {
     chThdCreateStatic(waINS, sizeof(waINS), NORMALPRIO, ins, NULL);
+}
+
+
+double ins_get_theta() {
+    return ins_theta;
+}
+
+double ins_get_vtheta() {
+    return ins_vtheta;
+}
+
+void send_ins_report(Message& msg) {
+    msg.clear();
+    auto& ins = msg.mutable_ins();
+    ins.set_vtheta((float)ins_vtheta);
+    ins.set_theta((float)ins_theta);
+    ins.set_bias((float)bias);
+    ins.set_variance(stat.Variance());
+    post_message(msg, protoduck::Message::MsgType::STATUS, TIME_IMMEDIATE);
 }

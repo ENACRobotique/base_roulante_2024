@@ -50,9 +50,10 @@ message Bat {
 }
 
 message Ins {
-  float theta = 1;
-  float bias = 2;
-  float variance = 3;
+  float vtheta = 1;
+  float theta = 2;
+  float bias = 3;
+  float variance = 4;
 }
 
 message Message {
