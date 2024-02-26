@@ -62,10 +62,17 @@ static void locomth(void *) {
 
 
 void pos_cons_cb(protoduck::Message& msg) {
-   if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND && msg.has_pos()) {
-    palToggleLine(LINE_LED1);
-    Eigen::Vector3d pos {msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta()};
-    guidance.set_target(pos);
+   if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
+      msg.has_pos()) {
+      if(msg.get_pos().get_obj() == protoduck::Pos::PosObject::POS_ROBOT_W) {
+        Eigen::Vector3d pos {msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta()};
+        guidance.set_target(pos);
+      } else if(msg.get_pos().get_obj() == protoduck::Pos::PosObject::RECALAGE) {
+        auto x = msg.get_pos().get_x();
+        auto y = msg.get_pos().get_y();
+        auto theta = msg.get_pos().get_theta();
+        odometry.set_pos(x, y, theta);
+      }
    }
 }
 

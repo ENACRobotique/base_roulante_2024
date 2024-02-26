@@ -10,6 +10,7 @@ message Pos {
     POS_CARROT_R = 2;
     POS_TARGET_W = 3;
     POS_TARGET_R = 4;
+    RECALAGE = 5;
   }
   float x = 1;
   float y = 2;
