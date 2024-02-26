@@ -72,6 +72,7 @@ void pos_cons_cb(protoduck::Message& msg) {
         auto y = msg.get_pos().get_y();
         auto theta = msg.get_pos().get_theta();
         odometry.set_pos(x, y, theta);
+        ins_set_theta(theta);
       }
    }
 }

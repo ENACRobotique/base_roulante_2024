@@ -62,6 +62,10 @@ double ins_get_vtheta() {
     return ins_vtheta;
 }
 
+void ins_set_theta(double theta) {
+    ins_theta = theta;
+}
+
 void send_ins_report(Message& msg) {
     msg.clear();
     auto& ins = msg.mutable_ins();
