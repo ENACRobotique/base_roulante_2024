@@ -7,7 +7,7 @@
 #define MOTORS_NB 3
 #define PERIOD_ODOM_REPORT 200  // ms
 
-constexpr double ROBOT_RADIUS = 120;//96; ca tourné bieng ave sa
+constexpr double ROBOT_RADIUS = 130.5;
 
 extern const Eigen::Matrix<double, 3, 3> D;
 

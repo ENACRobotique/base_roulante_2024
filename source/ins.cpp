@@ -3,12 +3,16 @@
 #include "ch.h"
 #include "communication.h"
 #include "RunningStat.h"
+#include "utils.h"
+
+constexpr double DEG_TO_RAD = (M_PI/180.0);
 
 RunningStat stat;
 
 #define NB_ALIGN_SAMPLES 2000
 
-constexpr double scale_factor = 1.1842105263157894;
+constexpr double scale_factor = 1.1946105485639553;
+// Hz
 constexpr double rate = 833.0;
 
 size_t align = NB_ALIGN_SAMPLES;
@@ -32,15 +36,14 @@ static void ins(void *) {
 
             if(align > 0) {
                 align -= 1;
-                bias += (double)data.gz / NB_ALIGN_SAMPLES;
-                stat.Push(data.gz);
+                bias += (double)data.gy / NB_ALIGN_SAMPLES;
+                stat.Push(data.gy);
                 if(align == 1) {
                     ins_theta = 0;
                 }
             } else {
-                ins_vtheta = ((double)data.gz - bias) * scale_factor;
+                ins_vtheta = ((double)data.gy - bias) * DEG_TO_RAD * scale_factor;
                 ins_theta += ins_vtheta / rate;
-                // ins_theta += ((double)data.gz - bias) / 833.0 * scale_factor;
             }
         }
 

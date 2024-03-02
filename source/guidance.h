@@ -18,6 +18,6 @@ class Guidance{
 
     public:
         void init();
-        void set_target(Eigen::Vector3d pos);
+        void set_target(Eigen::Vector3d pos, bool dumb=false);
         void update();
 };

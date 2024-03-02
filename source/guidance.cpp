@@ -6,19 +6,21 @@
  
 using namespace protoduck;
 
-constexpr double VMAX = 300; //   mm/s
+constexpr double VMAX = 200; //   mm/s
 
 void Guidance::init(){
     state = GuidanceState::IDLE;
 }
 
-void Guidance::set_target(Eigen::Vector3d pos){
+void Guidance::set_target(Eigen::Vector3d pos, bool dumb){
     start_pos = odometry.get_pos();
     target_pos = pos;
     start_time = chVTGetSystemTime();
 
     Eigen::Vector3d diff = target_pos - start_pos;
-    diff[THETA] = center_radians(diff[THETA]);
+    if(!dumb){
+        diff[THETA] = center_radians(diff[THETA]);
+    }
 
     double d = sqrt(pow(diff[X], 2) + pow(diff[Y], 2) + pow(ROBOT_RADIUS*diff[THETA], 2));
     estimated_time= d / VMAX; // calcule le temps estimé pour aller de start à target
@@ -28,16 +30,17 @@ void Guidance::set_target(Eigen::Vector3d pos){
     double theta0 = start_pos[THETA];
     double thetaTarget = target_pos[THETA];
 
-    if(thetaTarget - theta0 > M_PI) {
-        // ex: thetaTarget = pi - 0.1, theta0 = -pi + 01 ==> thetaTarget= -pi - 0.1
-        // donc thetaTarget -= 2*pi
-        thetaTarget -= 2*M_PI;
-    } else if(thetaTarget - theta0 < -M_PI) {
-        // c'est l'opposé
-        thetaTarget += 2*M_PI;
+    if(!dumb){
+        if(thetaTarget - theta0 > M_PI) {
+            // ex: thetaTarget = pi - 0.1, theta0 = -pi + 01 ==> thetaTarget= -pi - 0.1
+            // donc thetaTarget -= 2*pi
+            thetaTarget -= 2*M_PI;
+        } else if(thetaTarget - theta0 < -M_PI) {
+            // c'est l'opposé
+            thetaTarget += 2*M_PI;
+        }
+        target_pos[THETA] = thetaTarget;
     }
-    target_pos[THETA] = thetaTarget;
-    
 }
 
 /*
