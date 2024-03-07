@@ -52,7 +52,7 @@ static void locomth(void *) {
   while (true) {
     systime_t now = chVTGetSystemTime();
     odometry.update();
-    guidance.update();
+    //guidance.update();
     holocontrol.update();
     
     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
@@ -67,6 +67,8 @@ void pos_cons_cb(protoduck::Message& msg) {
       if(msg.get_pos().get_obj() == protoduck::Pos::PosObject::POS_ROBOT_W) {
         Eigen::Vector3d pos {msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta()};
         guidance.set_target(pos);
+        //holocontrol.set_cons(pos,{0,0,0});
+
       } else if(msg.get_pos().get_obj() == protoduck::Pos::PosObject::RECALAGE) {
         auto x = msg.get_pos().get_x();
         auto y = msg.get_pos().get_y();
@@ -76,6 +78,17 @@ void pos_cons_cb(protoduck::Message& msg) {
       }
    }
 }
+
+
+
+void pid_cons_cb(protoduck::Message& msg) {
+   if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
+      msg.has_motor_pid()) {
+        auto pids = msg.get_motor_pid();
+        holocontrol.set_pid_gains(pids.get_kp(), pids.get_ki(), pids.get_kd());
+   }
+}
+
 
 
 int main(void) {
@@ -100,6 +113,7 @@ int main(void) {
   
 
   register_callback(pos_cons_cb);
+  register_callback(pid_cons_cb);
 
 
   

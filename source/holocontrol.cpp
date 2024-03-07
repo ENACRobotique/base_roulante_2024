@@ -46,6 +46,11 @@ void HoloControl::init() {
   _pos_cons = {0., 0., 0.};
   _speed_cons = {0., 0., 0.};
   _cmds = {0., 0., 0.};
+
+  for(int i = 0; i<3;i++){
+    pids[i].init(ODOM_PERIOD,70);
+    pids[i].set_gains(8,1.1,0);
+  }
   }
 
 
@@ -58,6 +63,15 @@ void HoloControl::set_cons(const Eigen::Vector3d& posRobotR, const Eigen::Vector
     _pos_cons = (D * posRobotR) + odometry.get_motors_pos();
     _speed_cons = D * vRobotR;
 }
+
+
+void HoloControl::set_pid_gains(double kp, double ki, double kd){
+  for(int i=0;i<3;i++){
+    pids[i].set_gains(kp, ki, kd);
+  }
+  
+}
+
 
 void HoloControl::update()
 {
@@ -78,3 +92,4 @@ void HoloControl::update()
 
 
 }
+

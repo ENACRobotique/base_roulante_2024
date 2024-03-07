@@ -27,6 +27,7 @@ public:
 
     void set_cons(const Eigen::Vector3d& posRobotR, const Eigen::Vector3d& vRobotR);
     void update();
+    void set_pid_gains(double kp, double ki, double kd);
 
     Eigen::Vector3d get_cmds() { return _cmds;}
     Eigen::Vector3d get_pos_cons() { return _pos_cons;}

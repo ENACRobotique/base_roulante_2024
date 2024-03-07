@@ -11,8 +11,9 @@ using namespace protoduck;
 
 void send_pos(Message& msg);
 void send_speed(Message& msg);
+void send_motor_pos(Message& msg);
 
-static THD_WORKING_AREA(telem, 1024);
+static THD_WORKING_AREA(telem, 4096);
  static void telemetry(void *) {
    chRegSetThreadName("telemetry");
 
@@ -21,6 +22,7 @@ static THD_WORKING_AREA(telem, 1024);
      send_pos(msg);
      send_speed(msg);
      send_ins_report(msg);
+     //send_motor_pos(msg);
      chThdSleepMilliseconds(100);
    }
  }
@@ -52,4 +54,26 @@ void send_speed(Message& msg) {
   pos.set_vtheta(speed[2]);
 
   post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
+}
+
+void send_motor_pos(Message& msg) {
+  msg.clear();
+  auto& motors = msg.mutable_motors();
+  Eigen::Vector3d motor_pos = odometry.get_motors_pos();
+  motors.set_m1(motor_pos[0]);
+  motors.set_m2(motor_pos[1]);
+  motors.set_m3(motor_pos[2]);
+  motors.set_type(Motors::MotorDataType::MOTORS_POS);
+  post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
+
+  msg.clear();
+  
+  motors = msg.mutable_motors();
+  Eigen::Vector3d motor_pos_cons = holocontrol.get_pos_cons();
+  motors.set_m1(motor_pos_cons[0]);
+  motors.set_m2(motor_pos_cons[1]);
+  motors.set_m3(motor_pos_cons[2]);
+  motors.set_type(Motors::MotorDataType::MOTORS_POS_CONS);
+  post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
+  
 }
