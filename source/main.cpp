@@ -52,7 +52,7 @@ static void locomth(void *) {
   while (true) {
     systime_t now = chVTGetSystemTime();
     odometry.update();
-    //guidance.update();
+    guidance.update();
     holocontrol.update();
     
     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
