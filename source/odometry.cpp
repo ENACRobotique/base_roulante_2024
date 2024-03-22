@@ -58,6 +58,8 @@ void Odometry::update() {
   //robot move in robot frame
   Eigen::Vector3d robot_move_r = Dinv * ((motors_pos - prev_motors_pos));
 
+  send_move(robot_move_r);
+
   prev_motors_pos = motors_pos;
 
   _speed_r = Dinv * motors_speeds;
@@ -113,4 +115,16 @@ Eigen::Vector3d Odometry::get_motors_speed() {
     enc3.get_speed()};
   chMtxUnlock(&mut_hgf_pos);
   return motors_pos;
+}
+
+
+void Odometry::send_move(Eigen::Vector3d dpos) {
+  Message msg;
+  msg.clear();
+  auto& pos = msg.mutable_pos();
+  pos.set_x(dpos[0]);
+  pos.set_y(dpos[1]);
+  pos.set_theta(dpos[2]);
+  pos.set_obj(Pos::PosObject::MOVE_ROBOT_R);
+  post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
 }

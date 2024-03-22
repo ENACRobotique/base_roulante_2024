@@ -22,6 +22,8 @@ private:
     Eigen::Vector3d _speed_r;
     MUTEX_DECL(mut_hgf_pos);
 
+    void send_move(Eigen::Vector3d dpos);
+
 
 public:
     //Odometry() {}
