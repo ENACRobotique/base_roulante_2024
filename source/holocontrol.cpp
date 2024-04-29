@@ -48,8 +48,8 @@ void HoloControl::init() {
   _cmds = {0., 0., 0.};
 
   for(int i = 0; i<3;i++){
-    pids[i].init(ODOM_PERIOD,70);
-    pids[i].set_gains(8,1.1,0);
+    pids[i].init(ODOM_PERIOD, 10);
+    pids[i].set_gains(2, 0.1, 1);
   }
   }
 
@@ -92,4 +92,3 @@ void HoloControl::update()
 
 
 }
-

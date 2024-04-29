@@ -74,7 +74,7 @@ void Guidance::update() {
         }
 
         Eigen::Vector3d posCarrotR = rot * (posCarrotW - posRobotW);
-        posCarrotR[THETA] = center_radians(posCarrotR[THETA]);
+        posCarrotR[THETA] = center_radians(posCarrotR[THETA]) * 0.6;
         holocontrol.set_cons(posCarrotR,speed); //envoi le set cons en robotFrame
 
         // Message msg;

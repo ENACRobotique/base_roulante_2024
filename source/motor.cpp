@@ -57,8 +57,8 @@ void set_motor(int num_mot,double speed){
     //    speed = MAX_SPEED;
     // }
 
-    if (fabs(speed)> 20){
-       speed = 20;
+    if (fabs(speed)> 100){
+       speed = 100;
     }
 
     pwmcnt_t width = (fabs(speed)/MAX_SPEED)*PWM_PERIOD;
