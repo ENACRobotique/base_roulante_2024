@@ -75,5 +75,15 @@ void send_motor_pos(Message& msg) {
   motors.set_m3(motor_pos_cons[2]);
   motors.set_type(Motors::MotorDataType::MOTORS_POS_CONS);
   post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
+
+  msg.clear();
   
+  motors = msg.mutable_motors();
+  Eigen::Vector3d motor_cmds = holocontrol.get_cmds();
+  motors.set_m1(motor_cmds[0]);
+  motors.set_m2(motor_cmds[1]);
+  motors.set_m3(motor_cmds[2]);
+  motors.set_type(Motors::MotorDataType::MOTORS_CMD);
+  post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
+
 }
