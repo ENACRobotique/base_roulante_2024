@@ -8,6 +8,9 @@ using namespace protoduck;
 
 constexpr double VMAX = 200; //   mm/s
 
+constexpr double XY_ACCURACY = 5;     //   mm
+constexpr double THETA_ACCURACY = 1*DEG_TO_RAD; //   rad
+
 void Guidance::init(){
     state = GuidanceState::IDLE;
 }
@@ -70,12 +73,28 @@ void Guidance::update() {
             posCarrotW = alpha*target_pos + (1-alpha)*start_pos;
         } else {
             posCarrotW = target_pos;
-            state = GuidanceState::IDLE;
         }
 
         Eigen::Vector3d posCarrotR = rot * (posCarrotW - posRobotW);
-        posCarrotR[THETA] = center_radians(posCarrotR[THETA]) * 0.6;
+
+        posCarrotR[THETA] = center_radians(posCarrotR[THETA]);
+
+        if(alpha < 1) {
+            posCarrotR[THETA] = posCarrotR[THETA] * 0.6;
+        } else {
+            posCarrotR[THETA] = posCarrotR[THETA] * 4;
+        }
+
+        
         holocontrol.set_cons(posCarrotR,speed); //envoi le set cons en robotFrame
+
+
+        if(alpha >= 1) {
+            double d = sqrt(pow(posCarrotR[X], 2) + pow(posCarrotR[Y], 2));
+            if(d < XY_ACCURACY && posCarrotR[THETA] < THETA_ACCURACY) {
+                state = GuidanceState::IDLE;
+            }
+        }
 
         // Message msg;
         // auto& pos = msg.mutable_pos();

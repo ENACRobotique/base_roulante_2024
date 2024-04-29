@@ -7,8 +7,6 @@
 #include "odometry.h"
 #include "globalVar.h"
 
-constexpr double DEG_TO_RAD = (M_PI/180.0);
-
 RunningStat stat;
 
 #define NB_ALIGN_SAMPLES 2000

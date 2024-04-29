@@ -7,6 +7,8 @@
 
 #define M_PI 3.14159265358979323846
 
+constexpr double DEG_TO_RAD = M_PI / 180.0;
+
 #ifndef ABS
 #define ABS(val) ((val) < 0 ? -(val) : (val))
 #endif
