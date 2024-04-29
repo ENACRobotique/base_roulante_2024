@@ -37,6 +37,8 @@ public:
     double get_theta(void) {return _position[2];}
     Eigen::Vector3d get_pos() {return _position;}
 
+    void set_theta(double theta) {_position[2] = theta;}
+
     /**
      * Speed in the robot frame
      */

@@ -4,6 +4,8 @@
 #include "communication.h"
 #include "RunningStat.h"
 #include "utils.h"
+#include "odometry.h"
+#include "globalVar.h"
 
 constexpr double DEG_TO_RAD = (M_PI/180.0);
 
@@ -44,6 +46,7 @@ static void ins(void *) {
             } else {
                 ins_vtheta = ((double)data.gz - bias) * DEG_TO_RAD * scale_factor;
                 ins_theta += ins_vtheta / rate;
+                odometry.set_theta(ins_theta);
             }
         }
 
