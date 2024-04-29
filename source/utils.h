@@ -13,6 +13,10 @@ constexpr double DEG_TO_RAD = M_PI / 180.0;
 #define ABS(val) ((val) < 0 ? -(val) : (val))
 #endif
 
+template<typename T>
+T min(T a, T b) {
+    return a > b ? b: a;
+}
 
 /**
  * Centers an angle in radians to [-pi, pi[

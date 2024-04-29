@@ -79,11 +79,9 @@ void Guidance::update() {
 
         posCarrotR[THETA] = center_radians(posCarrotR[THETA]);
 
-        if(alpha < 1) {
-            posCarrotR[THETA] = posCarrotR[THETA] * 0.6;
-        } else {
-            posCarrotR[THETA] = posCarrotR[THETA] * 4;
-        }
+        // sur le trajet, soit moins regardant sur le theta, à la fin, soit plus sévère.
+        double coef_theta = min(0.6+exp((alpha-1.0)/0.1), 4.0);
+        posCarrotR[THETA] = posCarrotR[THETA] * coef_theta;
 
         
         holocontrol.set_cons(posCarrotR,speed); //envoi le set cons en robotFrame
