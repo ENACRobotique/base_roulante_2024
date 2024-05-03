@@ -58,7 +58,7 @@ void Odometry::update() {
   //robot move in robot frame
   Eigen::Vector3d robot_move_r = Dinv * ((motors_pos - prev_motors_pos));
 
-  send_move(robot_move_r);
+  //send_move(robot_move_r);
 
   prev_motors_pos = motors_pos;
 
