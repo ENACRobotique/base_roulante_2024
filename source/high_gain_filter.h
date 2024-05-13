@@ -40,7 +40,7 @@ public:
   void update_rate(double rate){ this->rate = rate; }
 
   double get_pos(){ return hatx[0];};
-  double get_speed(){ return hatx[1];};
+  double get_speed(){ return hatx[1]*12;};
 
 
 private:

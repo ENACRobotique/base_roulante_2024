@@ -46,14 +46,18 @@ static void encFilter(void *) {
   }
 }
 
-static THD_WORKING_AREA(locomotion, 4096);
+static THD_WORKING_AREA(locomotion, 5000);
 static void locomth(void *) {
   chRegSetThreadName("locomth");
   while (true) {
     systime_t now = chVTGetSystemTime();
     odometry.update();
-    guidance.update();
+    //guidance.update();
     holocontrol.update();
+
+    palToggleLine(LINE_LED1);
+
+    //DebugTrace("plop");
     
     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
   }
@@ -80,12 +84,43 @@ void pos_cons_cb(protoduck::Message& msg) {
 }
 
 
+void speed_cons_cb(protoduck::Message& msg) {
+   if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
+      msg.has_speed()) {
+        Eigen::Vector3d speedW;
+        
+
+
+        auto vx = msg.get_speed().get_vx();
+        auto vy = msg.get_speed().get_vy();
+        auto vtheta = msg.get_speed().get_vtheta();
+
+        speedW[0] = vx;
+        speedW[1] = vy;
+        speedW[2] = vtheta;
+
+
+        auto theta = odometry.get_theta();
+        const Eigen::Matrix<double, 3, 3> rot {
+            {cos(theta) , sin(theta), 0},
+            {-sin(theta), cos(theta), 0},
+            {0          ,          0, 1}
+        };
+
+        Eigen::Vector3d speedR = rot * (speedW);
+
+        holocontrol.set_cons({0,0,0}, speedR);
+        //DebugTrace("v: %f %f %f", vx, vy, vtheta);
+   }
+}
+
+
 
 void pid_cons_cb(protoduck::Message& msg) {
    if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
       msg.has_motor_pid()) {
         auto pids = msg.get_motor_pid();
-        holocontrol.set_pid_gains(pids.get_kp(), pids.get_ki(), pids.get_kd());
+        holocontrol.set_vel_pid_gains(pids.get_kp(), pids.get_ki(), pids.get_kd());
    }
 }
 
@@ -103,7 +138,7 @@ int main(void) {
 
   odometry.init();
   holocontrol.init();
-  guidance.init();
+  //guidance.init();
 
   imuStart();
   insStart();
@@ -114,6 +149,7 @@ int main(void) {
 
   register_callback(pos_cons_cb);
   register_callback(pid_cons_cb);
+  register_callback(speed_cons_cb);
 
 
   

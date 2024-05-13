@@ -38,7 +38,6 @@ SPIConfig spi1conf = {
 
 
 void data_cb(SPIDriver*) {
-  //palToggleLine(LINE_LED1);
   spiUnselectI(&SPID1);
 }
 
@@ -104,7 +103,6 @@ void readFIFO() {
 
         imu_data_write_index = (imu_data_write_index + 1) % IMU_DATA_NB;
       }
-      palToggleLine(LINE_LED1);
     }
   }
 }

@@ -20,7 +20,7 @@ public:
     /**
      * dt in seconds
     */
-    double update(double error, double speed_error) {
+    double update(double error) {
 
         // trapezoidal integration
         integral += (prev_err + error)/2 * dt;
@@ -33,8 +33,8 @@ public:
 
         // Kp*(Pc-P) + Ki*integral(Pc-P) + Kd*d(Pc-p)/dt
         // d(Pc-p)/dt  =  d(Pc)/dt - d(P)/dt  =  Vc - V  =  speed error
-        double cmd = kp*error + ki*integral + kd*speed_error;
-        cmd = clamp(-100, cmd, 100);
+        double cmd = kp*error + ki*integral + kd*(error - prev_err)/dt;
+        //cmd = clamp(-100, cmd, 100);
 
         return cmd;
     }
