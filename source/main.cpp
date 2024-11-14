@@ -51,12 +51,20 @@ static void locomth(void *) {
   chRegSetThreadName("locomth");
   while (true) {
     systime_t now = chVTGetSystemTime();
-    odometry.update();
-    //guidance.update();
-    holocontrol.update();
+    
+    if (stateholder.get_odom_state()& (uint32_t)protoduck::System::OdometryFlags::ODOMETRY_ENABLED)
+      {odometry.update();}
+
+
+    if (stateholder.get_control_state() == 0) {
+       // No asserve
+      } else if (stateholder.get_control_state() & (uint32_t)protoduck::System::AsservFlags::ASSERV_DIRECT) {
+       // directcontrol.update();
+      } else if (stateholder.get_control_state() & ((uint32_t)protoduck::System::AsservFlags::ASSERV_SPEED | (uint32_t)protoduck::System::AsservFlags::ASSERV_POS)) {
+      holocontrol.update();
+      }
 
     palToggleLine(LINE_LED1);
-
     //DebugTrace("plop");
     
     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
@@ -70,7 +78,8 @@ void pos_cons_cb(protoduck::Message& msg) {
       msg.has_pos()) {
       if(msg.get_pos().get_obj() == protoduck::Pos::PosObject::POS_ROBOT_W) {
         Eigen::Vector3d pos {msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta()};
-        guidance.set_target(pos);
+        if(stateholder.get_guidance_state() & (uint32_t)protoduck::System::GuidanceFlags::GUIDANCE_BASIC)
+          {guidance.set_target(pos);}
         //holocontrol.set_cons(pos,{0,0,0});
 
       } else if(msg.get_pos().get_obj() == protoduck::Pos::PosObject::RECALAGE) {
@@ -83,6 +92,14 @@ void pos_cons_cb(protoduck::Message& msg) {
    }
 }
 
+void system_ctl_cb(protoduck::Message& msg) {
+  if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
+      msg.has_system()) {
+        stateholder.set_control(msg.get_system().get_asserv());
+        stateholder.set_guidance(msg.get_system().get_guidance());
+        stateholder.set_odometry(msg.get_system().get_odometry());
+      }
+}
 
 void speed_cons_cb(protoduck::Message& msg) {
    if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
@@ -150,6 +167,7 @@ int main(void) {
   register_callback(pos_cons_cb);
   register_callback(pid_cons_cb);
   register_callback(speed_cons_cb);
+  register_callback(system_ctl_cb);
 
 
   

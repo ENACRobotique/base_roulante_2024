@@ -34,6 +34,8 @@ public:
     void update();
     void set_vel_pid_gains(double kp, double ki, double kd);
     void set_pos_pid_gains(double kp, double ki, double kd);
+    
+    //Adding position asserve in Cascade asserve (see update())
     void enable_position_control(bool en) {pos_control_enabled = en;}
 
     Eigen::Vector3d get_cmds() { return _cmds;}

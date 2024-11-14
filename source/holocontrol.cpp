@@ -96,14 +96,15 @@ void HoloControl::update()
 
   Eigen::Vector3d pos_ctrl_vel = {0, 0, 0};
 
+  Eigen::Vector3d speed_error = _speed_cons - motors_speed;
+  
   if(pos_control_enabled) {
     for(int i=0; i<MOTORS_NB; i++) {
         pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i]);
       }
+    speed_error = _speed_cons + pos_ctrl_vel - motors_speed;
   }
 
-  //Eigen::Vector3d speed_error = _speed_cons + pos_ctrl_vel - motors_speed;
-  Eigen::Vector3d speed_error = _speed_cons - motors_speed;
 
   for(int i=0; i<MOTORS_NB; i++) {
     _cmds[i] = vel_pids[i].update(speed_error[i]);
