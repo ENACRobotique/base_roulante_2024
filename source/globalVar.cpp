@@ -14,18 +14,3 @@ Odometry odometry;
 HoloControl holocontrol;
 Guidance guidance;
 
-
-void StateHolder::set_control(uint32_t asserve)
-{
-    _asserve_state = asserve;
-    if (asserve & (uint32_t)protoduck::System::AsservFlags::ASSERV_SPEED)
-    {
-        holocontrol.enable_position_control(false);
-    }
-    
-    if (asserve & (uint32_t)protoduck::System::AsservFlags::ASSERV_POS)
-    {
-        holocontrol.enable_position_control(true);
-    }
-    
-    }
