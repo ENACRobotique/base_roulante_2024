@@ -14,7 +14,7 @@ void send_speed(Message& msg);
 void send_motor_pos(Message& msg);
 void send_motor_speed(Message& msg);
 
-static THD_WORKING_AREA(telem, 4096);
+static THD_WORKING_AREA(telem, 20000);
  static void telemetry(void *) {
    chRegSetThreadName("telemetry");
 

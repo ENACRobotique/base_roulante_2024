@@ -7,7 +7,7 @@
 using namespace protoduck;
 
 
-#define NUM_MESSAGES 10
+#define NUM_MESSAGES 30
 extern mailbox_t mb_free_msgs;
 extern mailbox_t mb_filled_msgs;
 

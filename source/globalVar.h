@@ -9,7 +9,7 @@
 #include "guidance.h"
 
 #define ENCODERS_PERIOD 2
-#define ODOM_PERIOD 10
+#define ODOM_PERIOD 20 //10
 //Nom pour les commandes ( plus lisible que 1,2,...)
 #define X 0
 #define Y 1

@@ -29,7 +29,7 @@
             "label": "Serial monitor $(plug)",
             "type": "shell",
             "command": "python3",
-            "args": ["-m", "serial.tools.miniterm", "/dev/ttyACM2", "115200", "--filter=direct"]
+            "args": ["-m", "serial.tools.miniterm", "/dev/ttyACM0", "230400", "--filter=direct"]
         }
     ]
   }

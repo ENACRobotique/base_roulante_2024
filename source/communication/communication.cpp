@@ -28,7 +28,7 @@ msg_callback_t callbacks[NUM_CALLBACKS] = {0};
 
 
 static const SerialConfig serialConfig = {
-  .speed = 115200,
+  .speed = 230400,
   .cr1 = 0,
   .cr2 = USART_CR2_STOP1_BITS | USART_CR2_LINEN,
   .cr3 = 0
@@ -153,6 +153,9 @@ static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer) {
   }
 
   uint32_t msg_length = rx_buf[2];
+  if(msg_length == 0) {
+    return COM_ERROR;
+    }
 
   if (sdReadTimeout(&SD4, &rx_buf[3], msg_length, Timeout_rx) != msg_length){
     return COM_NO_MSG; // message bytes
