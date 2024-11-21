@@ -19,7 +19,7 @@
 #include "voltage_monitor.h"
 #include "ins.h"
 
-SystemManager systemmanager;
+
 /*
  * LED blinker thread, times are in milliseconds.
  */
@@ -52,17 +52,17 @@ static void locomth(void *) {
   while (true) {
     systime_t now = chVTGetSystemTime();
     
-    if (systemmanager.get_odom_state()& (uint32_t)protoduck::System::OdometryFlags::ODOMETRY_ENABLED)
+    if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_ENABLED)
       {odometry.update();}
     
-    if (systemmanager.get_guidance_state()& (uint32_t)protoduck::System::GuidanceFlags::GUIDANCE_BASIC)
+    if (systemmanager.get_guidance_state()& (uint32_t)Syst::GuidanceFlags::GUIDANCE_BASIC)
       {guidance.update();}
 
     if (systemmanager.get_control_state() == 0) {
        // No asserve
-      } else if (systemmanager.get_control_state() & (uint32_t)protoduck::System::AsservFlags::ASSERV_DIRECT) {
+      } else if (systemmanager.get_control_state() & (uint32_t)Syst::AsservFlags::ASSERV_DIRECT) {
        // directcontrol.update();
-      } else if (systemmanager.get_control_state() & ((uint32_t)protoduck::System::AsservFlags::ASSERV_SPEED | (uint32_t)protoduck::System::AsservFlags::ASSERV_POS)) {
+      } else if (systemmanager.get_control_state() & ((uint32_t)Syst::AsservFlags::ASSERV_SPEED | (uint32_t)Syst::AsservFlags::ASSERV_POS)) {
       holocontrol.update();
       }
 
@@ -80,7 +80,7 @@ void pos_cons_cb(protoduck::Message& msg) {
       msg.has_pos()) {
       if(msg.get_pos().get_obj() == protoduck::Pos::PosObject::POS_ROBOT_W) {
         Eigen::Vector3d pos {msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta()};
-        if(systemmanager.get_guidance_state() & (uint32_t)protoduck::System::GuidanceFlags::GUIDANCE_BASIC)
+        if(systemmanager.get_guidance_state() & (uint32_t)Syst::GuidanceFlags::GUIDANCE_BASIC)
           {guidance.set_target(pos);}
         //holocontrol.set_cons(pos,{0,0,0});
 
@@ -88,9 +88,13 @@ void pos_cons_cb(protoduck::Message& msg) {
         auto x = msg.get_pos().get_x();
         auto y = msg.get_pos().get_y();
         auto theta = msg.get_pos().get_theta();
-        if (systemmanager.get_odom_state()& (uint32_t)protoduck::System::OdometryFlags::ODOMETRY_ENABLED) {
+
+        if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_ENABLED) {
           odometry.set_pos(x, y, theta);}
-        ins_set_theta(theta);
+
+        if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_INS_ON) {
+          ins_set_theta(theta);}
+        
       }
    }
 }
@@ -119,7 +123,7 @@ void speed_cons_cb(protoduck::Message& msg) {
         speedW[1] = vy;
         speedW[2] = vtheta;
 
-        if (systemmanager.get_odom_state()& (uint32_t)protoduck::System::OdometryFlags::ODOMETRY_ENABLED){
+        if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_ENABLED){
           auto theta = odometry.get_theta();
           
           const Eigen::Matrix<double, 3, 3> rot {
@@ -130,8 +134,8 @@ void speed_cons_cb(protoduck::Message& msg) {
           speedR = rot * (speedW);
           }
 
-        if (systemmanager.get_control_state() & ((uint32_t)protoduck::System::AsservFlags::ASSERV_SPEED | (uint32_t)protoduck::System::AsservFlags::ASSERV_POS)) {
-          if (systemmanager.get_odom_state()& (uint32_t)protoduck::System::OdometryFlags::ODOMETRY_ENABLED){
+        if (systemmanager.get_control_state() & ((uint32_t)Syst::AsservFlags::ASSERV_SPEED | (uint32_t)Syst::AsservFlags::ASSERV_POS)) {
+          if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_ENABLED){
             holocontrol.set_cons({0,0,0}, speedR);}
           }
         //DebugTrace("v: %f %f %f", vx, vy, vtheta);
@@ -163,7 +167,7 @@ int main(void) {
   odometry.init();
   holocontrol.init();
   guidance.init();
-  systemmanager.init();
+  systemmanager.init(&holocontrol);
 
   imuStart();
   insStart();

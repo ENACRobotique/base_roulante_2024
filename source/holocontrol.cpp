@@ -54,10 +54,10 @@ void HoloControl::init() {
     vel_pids[i].set_gains(0.5, 0.1, 0);
 
     pos_pids[i].init(ODOM_PERIOD, 10);
-    pos_pids[i].set_gains(0, 0, 0);
+    pos_pids[i].set_gains(2, 0.1, 1);
   }
   
-  pos_control_enabled = false;
+  pos_cascade_enabled = false;
 
 
 }
@@ -98,7 +98,7 @@ void HoloControl::update()
 
   Eigen::Vector3d speed_error = _speed_cons - motors_speed;
   
-  if(pos_control_enabled) {
+  if(pos_cascade_enabled) {
     for(int i=0; i<MOTORS_NB; i++) {
         pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i]);
       }

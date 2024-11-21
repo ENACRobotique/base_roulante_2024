@@ -44,7 +44,10 @@ static void ins(void *) {
             } else {
                 ins_vtheta = ((double)data.gz - bias) * DEG_TO_RAD * scale_factor;
                 ins_theta += ins_vtheta / rate;
-                odometry.set_theta(ins_theta);
+                if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_INS_ON) {
+                    odometry.set_theta(ins_theta);
+
+                }
             }
         }
 
