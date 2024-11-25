@@ -230,7 +230,7 @@ $(PROTO_GEN_DIR_PYTHON)/%_pb2.py: %.proto
 
 
 flash: build/ch.elf
-	bmpflash build/ch.elf
+	$(TOOLDIR)/bmpflash build/ch.elf
 
 dfu_flash: build/ch.bin
 	dfu-util -d 0483:df11 -c 1 -i 0 -a 0 -s 0x08000000:leave -D build/ch.bin

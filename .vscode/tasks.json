@@ -20,9 +20,9 @@
         {
             "label": "Flash $(arrow-right)",
             "type": "shell",
-            "command": "arm-none-eabi-gdb",
-            "args": ["build/ch.elf", "-x", "flash.gdb"],
-            //"command": "make flash",
+            //"command": "arm-none-eabi-gdb",
+            //"args": ["build/ch.elf", "-x", "flash.gdb"],
+            "command": "make flash",
             "dependsOn": ["Build $(gear)"]
         },
         {

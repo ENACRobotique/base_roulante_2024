@@ -36,6 +36,7 @@
 ```
 sudo apt install libc6:i386 libncurses5:i386 libstdc++6:i386
 sudo apt install libmodern-perl-perl libxml-libxml-perl
+sudo perl -MCPAN -e 'install XML::LibXML'
 sudo perl -MCPAN -e 'install String::LCSS'
 ```
 
