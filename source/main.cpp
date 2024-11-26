@@ -58,11 +58,11 @@ static void locomth(void *) {
     if (systemmanager.get_guidance_state()& (uint32_t)Syst::GuidanceFlags::GUIDANCE_BASIC)
       {guidance.update();}
 
-    if (systemmanager.get_control_state() == 0) {
+    if (systemmanager.get_asserve_state() == (uint32_t)Syst::AsservFlags::ASSERV_NONE) {
        // No asserve
-      } else if (systemmanager.get_control_state() & (uint32_t)Syst::AsservFlags::ASSERV_DIRECT) {
+      } else if (systemmanager.get_asserve_state() & (uint32_t)Syst::AsservFlags::ASSERV_DIRECT) {
        // directcontrol.update();
-      } else if (systemmanager.get_control_state() & ((uint32_t)Syst::AsservFlags::ASSERV_SPEED | (uint32_t)Syst::AsservFlags::ASSERV_POS)) {
+      } else if (systemmanager.get_asserve_state() & ((uint32_t)Syst::AsservFlags::ASSERV_SPEED | (uint32_t)Syst::AsservFlags::ASSERV_POS)) {
       holocontrol.update();
       }
 
@@ -102,9 +102,9 @@ void pos_cons_cb(protoduck::Message& msg) {
 void system_ctl_cb(protoduck::Message& msg) {
   if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
       msg.has_system()) {
-        systemmanager.set_control(msg.get_system().get_asserv());
-        systemmanager.set_guidance(msg.get_system().get_guidance());
-        systemmanager.set_odometry(msg.get_system().get_odometry());
+        systemmanager.set_asserve(msg.get_system().get_asserv());
+        systemmanager.set_odometry(msg.get_system().get_guidance());
+        systemmanager.set_guidance(msg.get_system().get_odometry());
       }
 }
 
@@ -134,7 +134,7 @@ void speed_cons_cb(protoduck::Message& msg) {
           speedR = rot * (speedW);
           }
 
-        if (systemmanager.get_control_state() & ((uint32_t)Syst::AsservFlags::ASSERV_SPEED | (uint32_t)Syst::AsservFlags::ASSERV_POS)) {
+        if (systemmanager.get_asserve_state() & ((uint32_t)Syst::AsservFlags::ASSERV_SPEED | (uint32_t)Syst::AsservFlags::ASSERV_POS)) {
           if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_ENABLED){
             holocontrol.set_cons({0,0,0}, speedR);}
           }
@@ -167,7 +167,7 @@ int main(void) {
   odometry.init();
   holocontrol.init();
   guidance.init();
-  systemmanager.init(&holocontrol);
+  systemmanager.init(&holocontrol,&odometry, &guidance);
 
   imuStart();
   insStart();
