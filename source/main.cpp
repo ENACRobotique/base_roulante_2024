@@ -103,8 +103,8 @@ void system_ctl_cb(protoduck::Message& msg) {
   if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
       msg.has_system()) {
         systemmanager.set_asserve(msg.get_system().get_asserv());
-        systemmanager.set_odometry(msg.get_system().get_guidance());
-        systemmanager.set_guidance(msg.get_system().get_odometry());
+        systemmanager.set_odometry(msg.get_system().get_odometry());
+        systemmanager.set_guidance(msg.get_system().get_guidance());
       }
 }
 
