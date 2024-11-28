@@ -57,14 +57,8 @@ static void locomth(void *) {
     
     if (systemmanager.get_guidance_state()& (uint32_t)Syst::GuidanceFlags::GUIDANCE_BASIC)
       {guidance.update();}
-
-    if (systemmanager.get_asserve_state() == (uint32_t)Syst::AsservFlags::ASSERV_NONE) {
-       // No asserve
-      } else if (systemmanager.get_asserve_state() & (uint32_t)Syst::AsservFlags::ASSERV_DIRECT) {
-       // directcontrol.update();
-      } else if (systemmanager.get_asserve_state() & ((uint32_t)Syst::AsservFlags::ASSERV_SPEED | (uint32_t)Syst::AsservFlags::ASSERV_POS)) {
-      holocontrol.update();
-      }
+    
+    holocontrol.update();
 
     palToggleLine(LINE_LED1);
     //DebugTrace("plop");
@@ -82,7 +76,6 @@ void pos_cons_cb(protoduck::Message& msg) {
         Eigen::Vector3d pos {msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta()};
         if(systemmanager.get_guidance_state() & (uint32_t)Syst::GuidanceFlags::GUIDANCE_BASIC)
           {guidance.set_target(pos);}
-        //holocontrol.set_cons(pos,{0,0,0});
 
       } else if(msg.get_pos().get_obj() == protoduck::Pos::PosObject::RECALAGE) {
         auto x = msg.get_pos().get_x();
@@ -133,11 +126,9 @@ void speed_cons_cb(protoduck::Message& msg) {
           
           speedR = rot * (speedW);
           }
+          
+        holocontrol.set_cons({0,0,0}, speedR);
 
-        if (systemmanager.get_asserve_state() & ((uint32_t)Syst::AsservFlags::ASSERV_SPEED | (uint32_t)Syst::AsservFlags::ASSERV_POS)) {
-          if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_ENABLED){
-            holocontrol.set_cons({0,0,0}, speedR);}
-          }
         //DebugTrace("v: %f %f %f", vx, vy, vtheta);
    }
 }

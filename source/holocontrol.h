@@ -14,7 +14,8 @@ private:
     Eigen::Vector3d _pos_cons;
     Eigen::Vector3d _speed_cons;
 
-    bool pos_cascade_enabled;
+    bool _pos_cascade_enabled;
+    bool _asserve_enabled;
 
     PID pos_pids[MOTORS_NB];
     PID vel_pids[MOTORS_NB];
@@ -22,7 +23,7 @@ private:
     // keep commands for logging
     Eigen::Vector3d _cmds;
 
-    systime_t last_setpoint;
+    systime_t _last_setpoint;
 
 
 public:
@@ -36,7 +37,8 @@ public:
     void set_pos_pid_gains(double kp, double ki, double kd);
     
     //Adding position asserve in Cascade asserve (see update())
-    void enable_position_control(bool en) {pos_cascade_enabled = en;}
+    void enable_position_control(bool en) {_pos_cascade_enabled = en;}
+    void enable_asserve(bool enable){_asserve_enabled = enable;}
 
     Eigen::Vector3d get_cmds() { return _cmds;}
     Eigen::Vector3d get_pos_cons() { return _pos_cons;}
