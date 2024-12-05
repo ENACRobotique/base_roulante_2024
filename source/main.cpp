@@ -126,8 +126,15 @@ void speed_cons_cb(protoduck::Message& msg) {
           
           speedR = rot * (speedW);
           }
-          
-        holocontrol.set_cons({0,0,0}, speedR);
+        
+        if (systemmanager.get_guidance_state() & (uint32_t)Syst::GuidanceFlags::GUIDANCE_ROBOT_FRAME){
+          // robot frame
+          holocontrol.set_cons({0,0,0}, speedW);
+        }
+        else {
+          // table frame
+          holocontrol.set_cons({0,0,0}, speedR);
+        }
 
         //DebugTrace("v: %f %f %f", vx, vy, vtheta);
    }
