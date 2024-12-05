@@ -22,6 +22,11 @@ public:
     */
     double update(double error) {
 
+        // if(isnan(integral)) {
+        //     chSysHalt("integral NAN");
+        // }
+        chDbgAssert(!isnan(integral), "integral NAN");
+
         // trapezoidal integration
         integral += (prev_err + error)/2 * dt;
         prev_err = error;

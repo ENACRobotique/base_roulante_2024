@@ -23,7 +23,7 @@ public:
 
     /*Default values :
     - ODOMETRY_ENABLED
-    - GUIDANCE_BASIC
+    - GUIDANCE_BASIC&ROBOT_FRAME
     - ASSERV_POS
     */
     void init(HoloControl* holo, Odometry* odom, Guidance* guidance){
@@ -31,7 +31,7 @@ public:
         _guidance = guidance;
         _odom = odom;
         _current_asserve = (uint32_t)(protoduck::System::AsservFlags::ASSERV_POS);
-        _current_guidance = (uint32_t)protoduck::System::GuidanceFlags::GUIDANCE_BASIC;
+        _current_guidance = (uint32_t)protoduck::System::GuidanceFlags::GUIDANCE_BASIC | (uint32_t)protoduck::System::GuidanceFlags::GUIDANCE_ROBOT_FRAME;
         _current_odometry = (uint32_t)protoduck::System::OdometryFlags::ODOMETRY_ENABLED;
         }
     //Reminder : remember when choosing ASSERV_SPEED pos_cons won't work !

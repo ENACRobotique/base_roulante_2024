@@ -20,7 +20,7 @@ msg_t free_messages_queue[NUM_MESSAGES];
 MAILBOX_DECL(mb_free_msgs, free_messages_queue, NUM_MESSAGES);
 
 msg_t filled_messages_queue[NUM_MESSAGES];
-MAILBOX_DECL(mb_filled_msgs, free_messages_queue, NUM_MESSAGES);
+MAILBOX_DECL(mb_filled_msgs, filled_messages_queue, NUM_MESSAGES);
 
 
 constexpr size_t NUM_CALLBACKS = 10;
