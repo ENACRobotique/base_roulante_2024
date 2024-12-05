@@ -21,12 +21,12 @@ static THD_WORKING_AREA(telem, 20000);
    while (true) {
      Message msg;
      send_pos(msg);
-     //send_speed(msg);
+     send_speed(msg);
+     send_motor_pos(msg);
+     send_motor_speed(msg);
      //send_ins_report(msg);
 
-     send_motor_speed(msg);
      
-     //send_motor_pos(msg);
      chThdSleepMilliseconds(100);
    }
  }
