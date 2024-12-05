@@ -51,10 +51,10 @@ void HoloControl::init() {
 
   for(int i = 0; i<3;i++){
     vel_pids[i].init(ODOM_PERIOD, 10);
-    vel_pids[i].set_gains(0.5, 0.1, 0);
+    vel_pids[i].set_gains(0.5, 0.1, 0, 5);
 
     pos_pids[i].init(ODOM_PERIOD, 10);
-    pos_pids[i].set_gains(2, 0.1, 1);
+    pos_pids[i].set_gains(2, 0.1, 1, 2);
   }
   _asserve_enabled = true;
   _pos_cascade_enabled = true;
