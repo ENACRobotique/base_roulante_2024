@@ -36,7 +36,7 @@ public:
         }
     //Reminder : remember when choosing ASSERV_SPEED pos_cons won't work !
     void set_asserve(uint32_t asserve){
-        if (asserve == (uint32_t)protoduck::System::AsservFlags::ASSERV_NONE) {
+        if (asserve == (uint32_t)protoduck::System::AsservFlags::ASSERV_DISABLED) {
             _holocontrol->enable_asserve(false);
         } else {
             _holocontrol->enable_asserve(true);

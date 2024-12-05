@@ -52,8 +52,7 @@ static void locomth(void *) {
   while (true) {
     systime_t now = chVTGetSystemTime();
     
-    if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_ENABLED)
-      {odometry.update();}
+    odometry.update();
     
     if (systemmanager.get_guidance_state()& (uint32_t)Syst::GuidanceFlags::GUIDANCE_BASIC)
       {guidance.update();}
@@ -82,8 +81,8 @@ void pos_cons_cb(protoduck::Message& msg) {
         auto y = msg.get_pos().get_y();
         auto theta = msg.get_pos().get_theta();
 
-        if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_ENABLED) {
-          odometry.set_pos(x, y, theta);}
+        
+        odometry.set_pos(x, y, theta);
 
         if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_INS_ON) {
           ins_set_theta(theta);}
@@ -116,17 +115,16 @@ void speed_cons_cb(protoduck::Message& msg) {
         speedW[1] = vy;
         speedW[2] = vtheta;
 
-        if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_ENABLED){
-          auto theta = odometry.get_theta();
-          
-          const Eigen::Matrix<double, 3, 3> rot {
-              {cos(theta) , sin(theta), 0},
-              {-sin(theta), cos(theta), 0},
-              {0          ,          0, 1}};
-          
-          speedR = rot * (speedW);
-          }
+        auto theta = odometry.get_theta();
         
+        const Eigen::Matrix<double, 3, 3> rot {
+            {cos(theta) , sin(theta), 0},
+            {-sin(theta), cos(theta), 0},
+            {0          ,          0, 1}};
+        
+        speedR = rot * (speedW);
+      
+      
         if (systemmanager.get_guidance_state() & (uint32_t)Syst::GuidanceFlags::GUIDANCE_ROBOT_FRAME){
           // robot frame
           holocontrol.set_cons({0,0,0}, speedW);
