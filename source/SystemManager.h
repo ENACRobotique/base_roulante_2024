@@ -23,7 +23,7 @@ public:
 
     /*Default values :
     - ODOMETRY_ENABLED
-    - GUIDANCE_BASIC&ROBOT_FRAME
+    - GUIDANCE_BASIC et ROBOT_FRAME
     - ASSERV_POS
     */
     void init(HoloControl* holo, Odometry* odom, Guidance* guidance){
@@ -50,7 +50,6 @@ public:
 
         stop_motors();        
         _guidance->set_target(_odom->get_pos());
-        _guidance->update();
 
         _current_asserve = asserve;
         }
@@ -58,14 +57,12 @@ public:
     void set_guidance(uint32_t guidance){
         stop_motors();
         _guidance->set_target(_odom->get_pos());
-        _guidance->update();
         _current_guidance = guidance;
         }
 
     void set_odometry(uint32_t odometry){
         stop_motors();
         _guidance->set_target(_odom->get_pos());
-        _guidance->update();
         _current_odometry = odometry;
         }
 
