@@ -42,7 +42,7 @@ void Odometry::init() {
   enc2.init(false);
   enc3.init(false);
   
-  _position = {0, 0, 0};
+  _position = {250, 250, 0};
   prev_motors_pos = get_motors_pos();
   _speed_r = {0, 0, 0};
 }
