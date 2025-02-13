@@ -8,7 +8,7 @@
 #include "communication.h"
 
 
-#define ADC_TO_VOLT 189.2
+#define ADC_TO_VOLT (1./189.2)
 
 #define ADC_GRP1_NUM_CHANNELS 1
 #define ADC_GRP1_BUF_DEPTH    1
@@ -42,7 +42,7 @@ const ADCConversionGroup portab_adcgrpcfg1 = {
     0U
   },
   .sqr          = {
-    ADC_SQR1_SQ1_N(ADC_CHANNEL_IN1),
+    ADC_SQR1_SQ1_N(MEAS_VBAT_ADC_IN),
     0U,
     0U,
     0U
@@ -84,7 +84,7 @@ static THD_FUNCTION(ThreadADC, arg) {
     msg_t status = adcConvert(&ADCD5, &portab_adcgrpcfg1, samples1, ADC_GRP1_BUF_DEPTH);
     cacheBufferInvalidate(samples1, sizeof (samples1) / sizeof (adcsample_t));
     if(status == MSG_OK) {
-      double voltage = samples1[0]/189.2;
+      double voltage = samples1[0]*ADC_TO_VOLT;
       Message msg;
       msg.mutable_bat().set_voltage(voltage);
       post_message(msg, Message::MsgType::STATUS, chTimeMS2I(500));

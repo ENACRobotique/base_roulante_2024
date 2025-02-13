@@ -49,8 +49,10 @@ public:
     Eigen::Vector3d get_motors_speed();
 
     void update();
+    
+    #if defined(BOARD_DC)
     void update_filters();
-
+    #endif
 
 };
 

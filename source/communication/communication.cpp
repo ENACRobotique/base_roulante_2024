@@ -34,8 +34,11 @@ static const SerialConfig serialConfig = {
   .cr3 = 0
 };
 
+#if defined(BOARD_DC)
 SerialDriver* Serial = &SD4;
-
+#elif defined(BOARD_CAN)
+SerialDriver* Serial = &SD2;
+#endif
 
 static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer);
 static void com_rx (void *);
@@ -45,7 +48,7 @@ static void com_tx (void *);
 static THD_WORKING_AREA(waComRx, 2048);
 static THD_WORKING_AREA(waComTx, 1024);
 void communicationStart() {
-  sdStart(&SD4, &serialConfig);
+  sdStart(Serial, &serialConfig);
   
   // Pre-filling the free buffers pool with the available buffers, the post
   // will not stop because the mailbox is large enough.
@@ -121,7 +124,7 @@ static void com_tx (void *) {
     }
     full_message[buf_size +3] = chk;
 
-    sdWrite(&SD4, full_message, buf_size +4);
+    sdWrite(Serial, full_message, buf_size +4);
 
     buffer->clear();
     // return buffer to the free buffers pool.
@@ -141,14 +144,14 @@ static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer) {
 
   while((rx_buf[0] != 0xFF) || (rx_buf[1] =! 0xFF)) {
     rx_buf[0] = rx_buf[1];
-    sdReadTimeout(&SD4, rx_buf, 1, TIME_INFINITE);
+    sdReadTimeout(Serial, rx_buf, 1, TIME_INFINITE);
   }
   
-  if (sdReadTimeout(&SD4, &rx_buf[1], 1, Timeout_rx) != 1) {
+  if (sdReadTimeout(Serial, &rx_buf[1], 1, Timeout_rx) != 1) {
     return COM_NO_MSG;
   }
 
-  if (sdReadTimeout(&SD4, &rx_buf[2], 1, Timeout_rx) != 1) {
+  if (sdReadTimeout(Serial, &rx_buf[2], 1, Timeout_rx) != 1) {
     return COM_NO_MSG; // length byte
   }
 
@@ -157,7 +160,7 @@ static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer) {
     return COM_ERROR;
     }
 
-  if (sdReadTimeout(&SD4, &rx_buf[3], msg_length, Timeout_rx) != msg_length){
+  if (sdReadTimeout(Serial, &rx_buf[3], msg_length, Timeout_rx) != msg_length){
     return COM_NO_MSG; // message bytes
   }
 
@@ -168,7 +171,7 @@ static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer) {
     check_sum ^= rx_buf[i+3];
   }
   uint8_t chk_rcv;
-  if (sdReadTimeout(&SD4, &chk_rcv, 1, Timeout_rx) != 1) {
+  if (sdReadTimeout(Serial, &chk_rcv, 1, Timeout_rx) != 1) {
     return COM_NO_MSG; // check_sum byte
   }
   if (check_sum == chk_rcv){

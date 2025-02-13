@@ -20,10 +20,20 @@
 #include "ins.h"
 
 
+// #if defined(BOARD_DC)
+// #error "board DC"
+// #elif defined(BOARD_CAN)
+// #error "board CAN"
+// #else
+// #error "No board defined"
+// #endif
+
+
 /*
  * LED blinker thread, times are in milliseconds.
  */
 static THD_WORKING_AREA(waBlinker, 512);
+[[noreturn]]
 static void blinker(void *) {
   chRegSetThreadName("blinker");
   while (true) {
@@ -35,8 +45,10 @@ static void blinker(void *) {
   }
 }
 
+#if defined(BOARD_DC)
 
 static THD_WORKING_AREA(encodersFilter, 1024);
+[[noreturn]]
 static void encFilter(void *) {
   chRegSetThreadName("encodersFilter");
   while (true) {
@@ -46,7 +58,10 @@ static void encFilter(void *) {
   }
 }
 
+#endif
+
 static THD_WORKING_AREA(locomotion, 5000);
+[[noreturn]]
 static void locomth(void *) {
   chRegSetThreadName("locomth");
   while (true) {
@@ -149,17 +164,19 @@ void pid_cons_cb(protoduck::Message& msg) {
 }
 
 
-
-int main(void) {
-  // ChibiOS init
+void _init_chibios() __attribute__ ((constructor(101)));
+void _init_chibios() {
   halInit();
   chSysInit();
-  initHeap();
+  initHeap ();
+}
 
+
+int main(void) {
   consoleInit();  // initialisation des objets liés au shell
+  
 
   // subsystems init
-
   odometry.init();
   holocontrol.init();
   guidance.init();
@@ -178,18 +195,16 @@ int main(void) {
   register_callback(system_ctl_cb);
 
 
-  
-  /*
-   * Creates the blinker thread.
-   */
   chThdCreateStatic(waBlinker, sizeof(waBlinker), NORMALPRIO, blinker, NULL);
-
-  chThdCreateStatic(encodersFilter, sizeof(encodersFilter), NORMALPRIO+1, encFilter, NULL);
   chThdCreateStatic(locomotion, sizeof(locomotion), NORMALPRIO+1, locomth, NULL);
 
+  #if defined(BOARD_DC)
+  chThdCreateStatic(encodersFilter, sizeof(encodersFilter), NORMALPRIO+1, encFilter, NULL);
+  #endif
 
 
-  consoleLaunch();  // launch shell. Never returns.
+  consoleLaunch();
+  
 
   chThdSleep(TIME_INFINITE);
 }

@@ -3,6 +3,17 @@
 # NOTE: Can be overridden externally.
 #
 
+
+#BOARD := BOARD_DC
+BOARD := BOARD_CAN
+
+ifeq ($(BOARD),BOARD_DC)
+  BOARD_FILE = board_dc.cfg
+else ifeq ($(BOARD),BOARD_CAN)
+  BOARD_FILE = board_can.cfg
+endif
+
+
 # Compiler options here.
 ifeq ($(USE_OPT),)
   USE_OPT = -O0 -ggdb -fomit-frame-pointer -falign-functions=16
@@ -213,7 +224,7 @@ include $(RULESPATH)/rules.mk
 # Custom rules
 #
 $(OBJS): $(CONFDIR)/board.h
-$(CONFDIR)/board.h: $(CONFDIR)/board.cfg
+$(CONFDIR)/board.h: $(CONFDIR)/$(BOARD_FILE)
 	$(TOOLDIR)/boardGen.pl --no-pp-line $<  $@
 
 

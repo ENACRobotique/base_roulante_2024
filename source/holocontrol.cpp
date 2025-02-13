@@ -39,9 +39,9 @@ void HoloControl::init() {
 
   motorsStart();
 
-  set_motor(0,0);
-  set_motor(1,0);
-  set_motor(2,0);
+  mot1.set_cmd(0);
+  mot2.set_cmd(0);
+  mot3.set_cmd(0);
 
   _pos_cons = {0., 0., 0.};
   _speed_cons = {0., 0., 0.};
@@ -51,10 +51,10 @@ void HoloControl::init() {
 
   for(int i = 0; i<3;i++){
     vel_pids[i].init(ODOM_PERIOD, 10);
-    vel_pids[i].set_gains(0.5, 0.1, 0, 5);
+    vel_pids[i].set_gains(0.5, 0.1, 0);
 
     pos_pids[i].init(ODOM_PERIOD, 10);
-    pos_pids[i].set_gains(2, 0.1, 1, 2);
+    pos_pids[i].set_gains(2, 0.1, 1);
   }
   _asserve_enabled = true;
   _pos_cascade_enabled = true;
@@ -104,23 +104,24 @@ void HoloControl::update()
           pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i]);
         }
       speed_error = _speed_cons + pos_ctrl_vel - motors_speed;
-      }
+    }
 
 
     for(int i=0; i<MOTORS_NB; i++) {
       _cmds[i] = vel_pids[i].update(speed_error[i]);
-      }
+    }
 
-  set_motor(0,_cmds[0]);
-  set_motor(1,_cmds[1]);
-  set_motor(2,_cmds[2]);
+    mot1.set_cmd(_cmds[0]);
+    mot2.set_cmd(_cmds[1]);
+    mot3.set_cmd(_cmds[2]);
+
   }
   //DebugTrace("v: %f %f %f", _cmds[0], _cmds[1], _cmds[2]);
 
 
-    if (chTimeI2MS(chVTTimeElapsedSinceX(_last_setpoint)) > 1000) {
-      _speed_cons = {0,0,0};
-    }
+  if (chTimeI2MS(chVTTimeElapsedSinceX(_last_setpoint)) > 1000) {
+    _speed_cons = {0,0,0};
+  }
 
 
 }

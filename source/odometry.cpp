@@ -38,9 +38,9 @@ const Eigen::Matrix<double, 3, 3> Dinv = D.inverse();
 
 
 void Odometry::init() {
-  enc1.init(true);
-  enc2.init(false);
-  enc3.init(false);
+  mot1.init();
+  mot2.init();
+  mot3.init();
   
   _position = {250, 250, 0};
   prev_motors_pos = get_motors_pos();
@@ -81,7 +81,7 @@ void Odometry::update() {
   _position[2] = center_radians(_position[2]);
 }
 
-
+#if defined(BOARD_DC)
 void Odometry::update_filters()
 {
   chMtxLock(&mut_hgf_pos);
@@ -90,7 +90,7 @@ void Odometry::update_filters()
   enc3.update_filter();
   chMtxUnlock(&mut_hgf_pos);
 }
-
+#endif
 
 void Odometry::set_pos(double x, double y, double theta) {
   _position = {x, y, theta};
@@ -100,9 +100,9 @@ void Odometry::set_pos(double x, double y, double theta) {
 Eigen::Vector3d Odometry::get_motors_pos() {
   chMtxLock(&mut_hgf_pos);
   Eigen::Vector3d motors_pos =
-  { enc1.get_pos(),
-    enc2.get_pos(),
-    enc3.get_pos()};
+  { mot1.get_pos(),
+    mot2.get_pos(),
+    mot3.get_pos()};
   chMtxUnlock(&mut_hgf_pos);
   return motors_pos;
 }
@@ -110,9 +110,9 @@ Eigen::Vector3d Odometry::get_motors_pos() {
 Eigen::Vector3d Odometry::get_motors_speed() {
   chMtxLock(&mut_hgf_pos);
   Eigen::Vector3d motors_pos =
-  { enc1.get_speed(),
-    enc2.get_speed(),
-    enc3.get_speed()};
+  { mot1.get_speed(),
+    mot2.get_speed(),
+    mot3.get_speed()};
   chMtxUnlock(&mut_hgf_pos);
   return motors_pos;
 }

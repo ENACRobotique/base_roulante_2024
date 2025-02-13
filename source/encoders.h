@@ -18,7 +18,7 @@ private:
     double inc_to_mm;
 
 
-    
+
 public:
     Encoder(stm32_tim_t* tim, double inc_to_mm);
     void init(bool inverted);

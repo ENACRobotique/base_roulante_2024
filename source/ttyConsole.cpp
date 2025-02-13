@@ -25,7 +25,6 @@ static void cmd_threads(BaseSequentialStream *lchp, int argc,const char * const 
 static void cmd_uid(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_help(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_mot(BaseSequentialStream *lchp, int argc,const char * const argv[]);
-static void cmd_enc(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_encf(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_odom(BaseSequentialStream *lchp, int argc,const char * const argv[]);
 static void cmd_guidance(BaseSequentialStream *lchp, int argc,const char * const argv[]);
@@ -40,7 +39,6 @@ static const ShellCommand commands[] = {
   {"uid", cmd_uid},
   {"help", cmd_help},
   {"mot", cmd_mot},
-  {"enc", cmd_enc},
   {"encf", cmd_encf},
   {"odom", cmd_odom},
   {"goto", cmd_guidance},
@@ -75,32 +73,23 @@ static void cmd_mot(BaseSequentialStream *lchp, int argc,const char * const argv
     chprintf (lchp, "Usage: mot <n> <speed>\r\n");
     return;
   }
-  set_motor(atoi(argv[0]),atoi(argv[1]));
-}
-
-static void cmd_enc(BaseSequentialStream *lchp, int argc,const char * const argv[]) {
-  (void)argv;
-  (void)argc;
-  if(argc < 1) {
-    chprintf (lchp, "Usage: enc <n>\r\n");
-    return;
-  }
   switch (atoi(argv[0]))
   {
   case 1:
-    chprintf (lchp, "Enc 1: %ld\r\n", enc1.get_value());
+        mot1.set_cmd(atoi(argv[1]));
     break;
   case 2:
-    chprintf (lchp, "Enc 2: %ld\r\n", enc2.get_value());
+        mot2.set_cmd(atoi(argv[1]));
     break;
   case 3:
-    chprintf (lchp, "Enc 3: %ld\r\n", enc3.get_value());
+        mot3.set_cmd(atoi(argv[1]));
     break;
   
   default:
     break;
   }
 }
+
 
 static void cmd_encf(BaseSequentialStream *lchp, int argc,const char * const argv[]) {
   (void)argv;
@@ -112,13 +101,13 @@ static void cmd_encf(BaseSequentialStream *lchp, int argc,const char * const arg
   switch (atoi(argv[0]))
   {
   case 1:
-    chprintf (lchp, "Encf 1: %f\r\n", enc1.get_pos());
+    chprintf (lchp, "Encf 1: %f\r\n", mot1.get_pos());
     break;
   case 2:
-    chprintf (lchp, "Encf 2: %f\r\n", enc2.get_pos());
+    chprintf (lchp, "Encf 2: %f\r\n", mot2.get_pos());
     break;
   case 3:
-    chprintf (lchp, "Encf 3: %f\r\n", enc3.get_pos());
+    chprintf (lchp, "Encf 3: %f\r\n", mot3.get_pos());
     break;
   
   default:

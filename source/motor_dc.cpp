@@ -1,9 +1,10 @@
-#include "motor.h"
+#include "motor_dc.h"
 #include "stdio.h"
+#include "motor_dc.h"
+#include "encoders.h"
+#include <hal.h>
 
-
-const ioline_t numMoteur[3] = {LINE_MOT1_DIR,LINE_MOT2_DIR,LINE_MOT3_DIR};
-const ioline_t pwmChannel[3] = {2, 1, 0};
+#if defined(BOARD_DC)
 
 
 constexpr uint32_t PWM_FREQ = 50000;
@@ -44,26 +45,46 @@ void motorsStart() {
     pwmStart(&PWMD1, &pwmcfg1);
 }
 
-void set_motor(int num_mot,double speed){
+void MotorDC::init()
+{
+    enc->init(enc_inverted);
+}
 
-    if (speed < 0){
-        palWriteLine(numMoteur[num_mot], PAL_LOW); 
+double MotorDC::get_pos()
+{
+    return enc->get_pos();
+}
+
+double MotorDC::get_speed()
+{
+    return enc->get_speed();
+}
+
+void MotorDC::set_cmd(float cmd)
+{
+    if (cmd < 0){
+        palWriteLine(dir_pin, PAL_LOW); 
     }
     else{
-        palWriteLine(numMoteur[num_mot], PAL_HIGH);
+        palWriteLine(dir_pin, PAL_HIGH);
     }
 
-    // if (fabs(speed)> MAX_SPEED){
-    //    speed = MAX_SPEED;
-    // }
 
-    if (fabs(speed)> 100){
-       speed = 100;
+    if (fabs(cmd)> 100){
+       cmd = 100;
     }
 
-    pwmcnt_t width = (fabs(speed)/MAX_SPEED)*PWM_PERIOD;
+    pwmcnt_t width = (fabs(cmd)/MAX_SPEED)*PWM_PERIOD;
 
-    pwmEnableChannel(&PWMD1, pwmChannel[num_mot], width);
+    pwmEnableChannel(&PWMD1, pwm_channel, width);
 
+    command = cmd;
 
 }
+
+int16_t MotorDC::get_cmd()
+{
+    return command;
+}
+
+#endif
