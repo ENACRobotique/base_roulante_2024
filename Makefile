@@ -26,7 +26,7 @@ endif
 
 # C++ specific options here (added to USE_OPT).
 ifeq ($(USE_CPPOPT),)
-  USE_CPPOPT = -fno-rtti -std=c++17 -fno-rtti -fno-exceptions
+  USE_CPPOPT = -fno-rtti -std=c++20 -fno-rtti -fno-exceptions
 endif
 
 # Enable this if you want the linker to remove unused code and data.
@@ -59,12 +59,14 @@ endif
 # protobuf
 PROTOC = protoc
 PROTO_DIR = proto
-PROTO_GEN_DIR = build/generated
+PROTO_GEN_DIR = build/generated/proto
 PROTO_GEN_DIR_PYTHON = python/generated
 EMBEDDED_PROTO_DIR = $(shell pwd)/EmbeddedProto
 
-PROTO_FILES = $(wildcard $(PROTO_DIR)/*.proto)
+PROTO_FILES_PREFIXED = $(wildcard $(PROTO_DIR)/*.proto)
+PROTO_FILES = $(PROTO_FILES_PREFIXED:proto/%=%)
 PROTO_HDR := $(PROTO_FILES:%.proto=$(PROTO_GEN_DIR)/%.h) 
+
 PROTO_PY := $(PROTO_FILES:%.proto=$(PROTO_GEN_DIR_PYTHON)/%_pb2.py) 
 EMBEDDED_PROTO_SRC := $(wildcard ./EmbeddedProto/src/*.cpp)
 EMBEDDED_PROTO_OBJS := $(EMBEDDED_PROTO_SRC:%.cpp=$(OBJECT_DIR)/%.o)
@@ -195,6 +197,7 @@ UADEFS =
 UINCDIR = $(VARIOUS)/microrl \
           $(EMBEDDED_PROTO_DIR)/src \
           $(BUILDDIR)/generated \
+          $(BUILDDIR)/generated/proto \
           eigen
 
 # List the user directory to look for the libraries here
@@ -225,17 +228,19 @@ include $(RULESPATH)/rules.mk
 #
 $(OBJS): $(CONFDIR)/board.h
 $(CONFDIR)/board.h: $(CONFDIR)/$(BOARD_FILE)
+	$(shell mkdir -p $(dir $@))
 	$(TOOLDIR)/boardGen.pl --no-pp-line $<  $@
 
+$(OBJS): $(PROTO_HDR)
 
 generate: $(PROTO_HDR) $(PROTO_PY)
 	$(info Done generating source files based on *.proto files.)
 
-$(PROTO_GEN_DIR)/%.h: %.proto
+$(PROTO_GEN_DIR)/%.h: $(PROTO_DIR)/%.proto
 	$(shell mkdir -p $(dir $@))
 	cd $(EMBEDDED_PROTO_DIR) && $(PROTOC) --plugin=protoc-gen-eams=protoc-gen-eams -I../$(PROTO_DIR) --eams_out=../$(PROTO_GEN_DIR) ../$<
 
-$(PROTO_GEN_DIR_PYTHON)/%_pb2.py: %.proto
+$(PROTO_GEN_DIR_PYTHON)/%_pb2.py: $(PROTO_DIR)/%.proto
 	mkdir -p $(PROTO_GEN_DIR_PYTHON)
 	$(PROTOC) -I=$(PROTO_DIR) --python_out=$(PROTO_GEN_DIR_PYTHON)  $<
 
@@ -245,6 +250,13 @@ flash: build/ch.elf
 
 dfu_flash: build/ch.bin
 	dfu-util -d 0483:df11 -c 1 -i 0 -a 0 -s 0x08000000:leave -D build/ch.bin
+
+board_clean:
+	$(info Removing $(CONFDIR)/board.h)
+	@rm -f $(CONFDIR)/board.h
+
+clean: board_clean
+
 
 #
 # Custom rules
