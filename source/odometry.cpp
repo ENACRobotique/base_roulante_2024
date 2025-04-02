@@ -22,9 +22,9 @@
 // Euclidean speeds into motor speeds: m = Dv
 
 
-constexpr double THETA1 = 0;
-constexpr double THETA2 = 2.0*M_PI/3.0;
-constexpr double THETA3 = -2.0*M_PI/3.0;
+constexpr double THETA1 = M_PI;
+constexpr double THETA2 = -M_PI/3.0;
+constexpr double THETA3 = M_PI/3.0;
 
 // Euclidean speeds into motor speeds: m = Dv
 const Eigen::Matrix<double, 3, 3> D {
@@ -42,7 +42,7 @@ void Odometry::init() {
   mot2.init();
   mot3.init();
   
-  _position = {250, 250, 0};
+  _position = {0, 0, 0};
   prev_motors_pos = get_motors_pos();
   _speed_r = {0, 0, 0};
 }
