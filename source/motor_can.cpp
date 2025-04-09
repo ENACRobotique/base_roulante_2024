@@ -46,7 +46,7 @@ static const struct can_instance can2 = {
 static THD_WORKING_AREA(can_rx_wa, 512);
 static THD_FUNCTION(can_rx, p) {
   //struct can_instance *cip = (struct can_instance*)p;
-  event_listener_t el;
+  //event_listener_t el;
   CANRxFrame rxmsg;
 
   (void)p;
@@ -122,7 +122,7 @@ void motorsStart() {
 
 void MotorCAN::set_cmd(float cmd)
 {
-   command = cmd * 10;
+   command = cmd * 100;
 }
 
 int16_t MotorCAN::get_cmd()
@@ -141,6 +141,7 @@ void MotorCAN::set_status(int16_t new_angle, int16_t new_speed, int16_t new_torq
 
   angle = new_angle;
   speed = new_speed;
+  // speed = 0.2*new_speed + 0.8*speed;
   torque = new_torque;
 }
 

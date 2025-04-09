@@ -15,7 +15,7 @@
             "BMPGDBSerialPort": "/dev/bmp_gdb",
             "svdPath": "STM32G484.svd",
             "preLaunchCommands": ["make"],
-            "armToolchainPath": "/opt/arm-gnu-toolchain-13.2/bin"
+            "armToolchainPath": "/opt/arm-gnu-toolchain-14.2/bin"
         },
         {
             "name": "attach",
@@ -26,7 +26,7 @@
             "servertype": "bmp",
             "BMPGDBSerialPort": "/dev/bmp_gdb",
             "svdPath": "STM32G484.svd",
-            "armToolchainPath": "/opt/arm-gnu-toolchain-13.2/bin"
+            "armToolchainPath": "/opt/arm-gnu-toolchain-14.2/bin"
         }
     ]
 }

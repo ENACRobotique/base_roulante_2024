@@ -74,7 +74,6 @@ static void locomth(void *) {
     
     holocontrol.update();
 
-    palToggleLine(LINE_LED1);
     //DebugTrace("plop");
     
     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
@@ -201,6 +200,9 @@ int main(void) {
   #if defined(BOARD_DC)
   chThdCreateStatic(encodersFilter, sizeof(encodersFilter), NORMALPRIO+1, encFilter, NULL);
   #endif
+
+
+  palClearLine(LINE_LED1);
 
 
   consoleLaunch();

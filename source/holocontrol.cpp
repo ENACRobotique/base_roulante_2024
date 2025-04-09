@@ -50,8 +50,8 @@ void HoloControl::init() {
   _last_setpoint = chSysGetRealtimeCounterX();
 
   for(int i = 0; i<3;i++){
-    vel_pids[i].init(ODOM_PERIOD, 10);
-    vel_pids[i].set_gains(0.5, 0.1, 0);
+    vel_pids[i].init(ODOM_PERIOD, 100);
+    vel_pids[i].set_gains(0.2, 0.03, 0.01);
 
     pos_pids[i].init(ODOM_PERIOD, 10);
     pos_pids[i].set_gains(2, 0.1, 1);
@@ -93,22 +93,25 @@ void HoloControl::update()
     Eigen::Vector3d  motors_pos = odometry.get_motors_pos();
     Eigen::Vector3d  motors_speed = odometry.get_motors_speed();
 
-    Eigen::Vector3d pos_error = _pos_cons - motors_pos;
+    
 
     Eigen::Vector3d pos_ctrl_vel = {0, 0, 0};
 
     Eigen::Vector3d speed_error = _speed_cons - motors_speed;
     
     if(_pos_cascade_enabled) {
+      Eigen::Vector3d pos_error = _pos_cons - motors_pos;
       for(int i=0; i<MOTORS_NB; i++) {
-          pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i]);
+          pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i], nullptr);
         }
-      speed_error = _speed_cons + pos_ctrl_vel - motors_speed;
+      speed_error += pos_ctrl_vel;
     }
 
 
     for(int i=0; i<MOTORS_NB; i++) {
-      _cmds[i] = vel_pids[i].update(speed_error[i]);
+      bool i_sat;
+      _cmds[i] = vel_pids[i].update(speed_error[i], &i_sat);
+      palSetLine(LINE_LED1);
     }
 
     mot1.set_cmd(_cmds[0]);
