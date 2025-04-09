@@ -1,6 +1,7 @@
 #pragma once
 #include "ch.h"
 #include "utils.h"
+#include "math.h"
 
 class PID {
 
@@ -22,18 +23,31 @@ public:
     */
     double update(double error) {
 
+        if(fabs(error) < 5) {
+            error = 0;
+        }
+
         // trapezoidal integration
         integral += (prev_err + error)/2 * dt;
-        prev_err = error;
+        
 
         if(ki != 0) {
             //saturate error integral such that the contribution of integrator to the cmd cannot exceed max_int_cmd.
-            integral = clamp(-max_int_cmd/ki, integral, max_int_cmd/ki);
+            integral = clamp(-max_int_cmd/ki, integral, max_int_cmd/ki);           
         }
 
-        // Kp*(Pc-P) + Ki*integral(Pc-P) + Kd*d(Pc-p)/dt
-        // d(Pc-p)/dt  =  d(Pc)/dt - d(P)/dt  =  Vc - V  =  speed error
-        double cmd = kp*error + ki*integral;
+        double derr = (error - prev_err) / dt;
+        double cmd = kp*error + ki*integral + kd*derr;
+
+        prev_err = error;
+        
+        // Deadband du moteur : en dessous de 3.5, il ne tourne pas (frottements, ...)
+        // if(cmd > 0.1) {
+        //     cmd += 3.5;
+        // }
+        // else if (cmd < -0.1) {
+        //     cmd -= 3.5;
+        // }
         cmd = clamp(-100, cmd, 100);
 
         return cmd;

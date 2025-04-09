@@ -17,17 +17,18 @@ void send_motor_speed(Message& msg);
 static THD_WORKING_AREA(telem, 20000);
  static void telemetry(void *) {
    chRegSetThreadName("telemetry");
+   Message msg;
 
    while (true) {
-     Message msg;
+     systime_t now = chVTGetSystemTime();
+     
      send_pos(msg);
      send_speed(msg);
      send_motor_pos(msg);
      send_motor_speed(msg);
      send_ins_report(msg);
 
-     
-     chThdSleepMilliseconds(100);
+     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
    }
  }
 

@@ -20,6 +20,7 @@ extern "C" {
 #include "messages.h"
 #include "communication.h"
 #include "globalVar.h"
+#include "ins.h"
 
 
 /*
@@ -50,16 +51,23 @@ void HoloControl::init() {
   _last_setpoint = chSysGetRealtimeCounterX();
 
   for(int i = 0; i<3;i++){
-    vel_pids[i].init(ODOM_PERIOD, 10);
-    vel_pids[i].set_gains(0.5, 0.1, 0);
+    vel_pids[i].init(ODOM_PERIOD, 100);
+    vel_pids[i].set_gains(0.1, 0.03, -0.001);
 
     pos_pids[i].init(ODOM_PERIOD, 10);
     pos_pids[i].set_gains(2, 0.1, 1);
+
+    speedR_pids[i].init(ODOM_PERIOD, 100);
   }
+  // speedR_pids[0].set_gains(0, 0.1, 0);
+  // speedR_pids[1].set_gains(0, 0.1, 0);
+  // speedR_pids[2].set_gains(0, 0.5, 0);
+  speedR_pids[0].set_gains(0, 0.0, 0);
+  speedR_pids[1].set_gains(0, 0.0, 0);
+  speedR_pids[2].set_gains(0, 0.0, 0);
+
   _asserve_enabled = true;
-  _pos_cascade_enabled = true;
-
-
+  _pos_cascade_enabled = false;
 }
 
 
@@ -70,7 +78,7 @@ void HoloControl::init() {
 void HoloControl::set_cons(const Eigen::Vector3d& posRobotR, const Eigen::Vector3d& vRobotR)
 {  
     _pos_cons = (D * posRobotR) + odometry.get_motors_pos();
-    _speed_cons = D * vRobotR;
+    _speed_cons = vRobotR;
     _last_setpoint = chVTGetSystemTime();
 }
 
@@ -89,39 +97,48 @@ void HoloControl::set_pos_pid_gains(double kp, double ki, double kd){
 
 void HoloControl::update()
 {
-  if (_asserve_enabled){
-    Eigen::Vector3d  motors_pos = odometry.get_motors_pos();
-    Eigen::Vector3d  motors_speed = odometry.get_motors_speed();
-
-    Eigen::Vector3d pos_error = _pos_cons - motors_pos;
-
-    Eigen::Vector3d pos_ctrl_vel = {0, 0, 0};
-
-    Eigen::Vector3d speed_error = _speed_cons - motors_speed;
-    
-    if(_pos_cascade_enabled) {
-      for(int i=0; i<MOTORS_NB; i++) {
-          pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i]);
-        }
-      speed_error = _speed_cons + pos_ctrl_vel - motors_speed;
-    }
-
-
-    for(int i=0; i<MOTORS_NB; i++) {
-      _cmds[i] = vel_pids[i].update(speed_error[i]);
-    }
-
-    mot1.set_cmd(_cmds[0]);
-    mot2.set_cmd(_cmds[1]);
-    mot3.set_cmd(_cmds[2]);
-
-  }
-  //DebugTrace("v: %f %f %f", _cmds[0], _cmds[1], _cmds[2]);
-
-
   if (chTimeI2MS(chVTTimeElapsedSinceX(_last_setpoint)) > 1000) {
     _speed_cons = {0,0,0};
+    mot1.set_cmd(0);
+    mot2.set_cmd(0);
+    mot3.set_cmd(0);
   }
 
+  if (!_asserve_enabled) {
+    return;
+  }
+
+
+  Eigen::Vector3d speedR = odometry.get_speed();
+  speedR[2] = ins_get_vtheta();
+  Eigen::Vector3d speedRerror = _speed_cons - speedR;
+  Eigen::Vector3d u_speedR;
+  for(int i=0; i<3; i++) {
+    u_speedR[i] = speedR_pids[i].update(speedRerror[i]);
+  }
+
+  Eigen::Vector3d  motors_pos = odometry.get_motors_pos();
+  Eigen::Vector3d  motors_speed = odometry.get_motors_speed();
+
+  Eigen::Vector3d speed_error = D*(_speed_cons + u_speedR) - motors_speed;
+  
+  
+  if(_pos_cascade_enabled) {
+    Eigen::Vector3d pos_ctrl_vel = {0, 0, 0};
+    Eigen::Vector3d pos_error = _pos_cons - motors_pos;
+    for(int i=0; i<MOTORS_NB; i++) {
+        pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i]);
+      }
+    speed_error += pos_ctrl_vel;
+  }
+
+
+  for(int i=0; i<MOTORS_NB; i++) {
+    _cmds[i] = vel_pids[i].update(speed_error[i]);
+  }
+
+  mot1.set_cmd(_cmds[0]);
+  mot2.set_cmd(_cmds[1]);
+  mot3.set_cmd(_cmds[2]);
 
 }

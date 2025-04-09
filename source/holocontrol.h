@@ -12,6 +12,8 @@ class HoloControl {
 private:
 
     Eigen::Vector3d _pos_cons;
+    
+    // vitesse de consigne du robot (vx, vy, vtheta) en repere robot
     Eigen::Vector3d _speed_cons;
 
     bool _pos_cascade_enabled;
@@ -19,6 +21,8 @@ private:
 
     PID pos_pids[MOTORS_NB];
     PID vel_pids[MOTORS_NB];
+
+    PID speedR_pids[3];
 
     // keep commands for logging
     Eigen::Vector3d _cmds;

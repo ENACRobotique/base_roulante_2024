@@ -18,9 +18,9 @@ public:
 
     virtual double get_speed() override;
 
-    virtual void set_cmd(float cmd) override;
+    virtual void set_cmd(double cmd) override;
 
-    virtual int16_t get_cmd() override;
+    virtual double get_cmd() override;
 
 private:
     Encoder* enc;

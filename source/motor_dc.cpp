@@ -82,7 +82,7 @@ void MotorDC::set_cmd(float cmd)
 
 }
 
-int16_t MotorDC::get_cmd()
+double MotorDC::get_cmd()
 {
     return command;
 }

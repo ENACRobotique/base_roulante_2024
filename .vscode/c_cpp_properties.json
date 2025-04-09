@@ -1,7 +1,7 @@
 {
     "env": {
         "CHIBIOS": "${workspaceFolder}/ChibiOS",
-        "ARM_TOOLCHAIN": "/opt/arm-gnu-toolchain-13.2/"
+        "ARM_TOOLCHAIN": "/opt/arm-gnu-toolchain-14.2/"
     },
     "configurations": [
         {
@@ -9,7 +9,7 @@
             "includePath": [
                 "${ARM_TOOLCHAIN}/**",
                 "${workspaceFolder}/cfg",
-                "${workspaceFolder}/build/generated",
+                "${workspaceFolder}/build/generated/**",
                 "${workspaceFolder}/source/**",
                 "${workspaceFolder}/EmbeddedProto/src/**",
                 "${workspaceFolder}/chibios_enac_various_common/",
