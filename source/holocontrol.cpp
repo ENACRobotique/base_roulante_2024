@@ -97,7 +97,7 @@ void HoloControl::set_pos_pid_gains(double kp, double ki, double kd){
 
 void HoloControl::update()
 {
-  if (chTimeI2MS(chVTTimeElapsedSinceX(_last_setpoint)) > 1000) {
+  if (chTimeI2MS(chVTTimeElapsedSinceX(_last_setpoint)) > 500) {
     _speed_cons = {0,0,0};
     mot1.set_cmd(0);
     mot2.set_cmd(0);
@@ -117,20 +117,20 @@ void HoloControl::update()
     u_speedR[i] = speedR_pids[i].update(speedRerror[i]);
   }
 
-  Eigen::Vector3d  motors_pos = odometry.get_motors_pos();
+  // Eigen::Vector3d  motors_pos = odometry.get_motors_pos();
   Eigen::Vector3d  motors_speed = odometry.get_motors_speed();
 
   Eigen::Vector3d speed_error = D*(_speed_cons + u_speedR) - motors_speed;
   
   
-  if(_pos_cascade_enabled) {
-    Eigen::Vector3d pos_ctrl_vel = {0, 0, 0};
-    Eigen::Vector3d pos_error = _pos_cons - motors_pos;
-    for(int i=0; i<MOTORS_NB; i++) {
-        pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i]);
-      }
-    speed_error += pos_ctrl_vel;
-  }
+  // if(_pos_cascade_enabled) {
+  //   Eigen::Vector3d pos_ctrl_vel = {0, 0, 0};
+  //   Eigen::Vector3d pos_error = _pos_cons - motors_pos;
+  //   for(int i=0; i<MOTORS_NB; i++) {
+  //       pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i]);
+  //     }
+  //   speed_error += pos_ctrl_vel;
+  // }
 
 
   for(int i=0; i<MOTORS_NB; i++) {

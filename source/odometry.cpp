@@ -10,6 +10,7 @@
 #include "globalVar.h"
 #include "stdutil.h"
 #include "printf.h"
+#include "ins.h"
 
 /*
  *  |v1|   |-sin(O1)  cos(O1)  1|   |vx|
@@ -78,7 +79,8 @@ void Odometry::update() {
   Eigen::Vector3d robot_move_table = R * robot_move_r;
 
   _position += robot_move_table;
-  _position[2] = center_radians(_position[2]);
+  //_position[2] = center_radians(_position[2]);
+  _position[2] = center_radians(-ins_get_theta());
 }
 
 #if defined(BOARD_DC)

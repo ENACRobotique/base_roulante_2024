@@ -69,8 +69,8 @@ static void locomth(void *) {
     
     odometry.update();
     
-    if (systemmanager.get_guidance_state()& (uint32_t)Syst::GuidanceFlags::GUIDANCE_BASIC)
-      {guidance.update();}
+    // if (systemmanager.get_guidance_state()& (uint32_t)Syst::GuidanceFlags::GUIDANCE_BASIC)
+    //   {guidance.update();}
     
     holocontrol.update();
 
@@ -97,9 +97,9 @@ void pos_cons_cb(protoduck::Message& msg) {
 
         
         odometry.set_pos(x, y, theta);
-
-        if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_INS_ON) {
-          ins_set_theta(theta);}
+        ins_set_theta(-theta);
+        // if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_INS_ON) {
+        //   ins_set_theta(theta);}
         
       }
    }

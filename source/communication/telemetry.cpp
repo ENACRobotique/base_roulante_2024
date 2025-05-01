@@ -54,9 +54,10 @@ void send_speed(Message& msg) {
   msg.clear();
   auto& pos = msg.mutable_speed();
   auto speed = odometry.get_speed();
+  auto vtheta = ins_get_vtheta();
   pos.set_vx(speed[0]);
   pos.set_vy(speed[1]);
-  pos.set_vtheta(speed[2]);
+  pos.set_vtheta(vtheta);
 
   post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
 }
