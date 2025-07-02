@@ -38,9 +38,9 @@ void Odometry::init() {
 
 void Odometry::update() {
   // motors position in mm
-  Eigen::Vector4d motors_pos = get_motors_pos();
+  auto motors_pos = get_motors_pos();
   // motors speed in mm/s
-  Eigen::Vector4d motors_speeds = get_motors_speed();
+  auto motors_speeds = get_motors_speed();
   
 
   //robot move in robot frame
@@ -86,9 +86,9 @@ void Odometry::set_pos(double x, double y, double theta) {
 }
 
 
-Eigen::Vector4d Odometry::get_motors_pos() {
+Eigen::Matrix<double, MOTORS_NB, 1> Odometry::get_motors_pos() {
   chMtxLock(&mut_hgf_pos);
-  Eigen::Vector4d motors_pos =
+  Eigen::Matrix<double, MOTORS_NB, 1> motors_pos =
   { mot1.get_pos(),
     mot2.get_pos(),
     mot3.get_pos(),
@@ -98,9 +98,9 @@ Eigen::Vector4d Odometry::get_motors_pos() {
   return motors_pos;
 }
 
-Eigen::Vector4d Odometry::get_motors_speed() {
+Eigen::Matrix<double, MOTORS_NB, 1> Odometry::get_motors_speed() {
   chMtxLock(&mut_hgf_pos);
-  Eigen::Vector4d motors_pos =
+  Eigen::Matrix<double, MOTORS_NB, 1> motors_pos =
   { mot1.get_speed(),
     mot2.get_speed(),
     mot3.get_speed(),

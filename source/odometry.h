@@ -3,6 +3,7 @@
 #include "ch.h"
 #include <Eigen/Core>
 #include "encoders.h"
+#include "mot_conf.h"
 
 #define PERIOD_ODOM_REPORT 200  // ms
 
@@ -12,7 +13,7 @@ class Odometry {
 private:
     
 
-    Eigen::Vector4d prev_motors_pos;
+    Eigen::Matrix<double, MOTORS_NB, 1> prev_motors_pos;
     Eigen::Vector3d _position;
     Eigen::Vector3d _speed_r;
     MUTEX_DECL(mut_hgf_pos);
@@ -40,8 +41,8 @@ public:
     Eigen::Vector3d get_speed() {return _speed_r;}
 
 
-    Eigen::Vector4d get_motors_pos();
-    Eigen::Vector4d get_motors_speed();
+    Eigen::Matrix<double, MOTORS_NB, 1> get_motors_pos();
+    Eigen::Matrix<double, MOTORS_NB, 1> get_motors_speed();
 
     void update();
     

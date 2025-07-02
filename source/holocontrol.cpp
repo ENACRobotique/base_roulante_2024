@@ -109,9 +109,9 @@ void HoloControl::update()
   speedR[2] = ins_get_vtheta();
 
   // Eigen::Vector3d  motors_pos = odometry.get_motors_pos();
-  Eigen::Vector4d  motors_speed = odometry.get_motors_speed();
+  auto motors_speed = odometry.get_motors_speed();
 
-  Eigen::Vector4d speed_error = D*(_speed_cons) - motors_speed;
+  auto speed_error = D*(_speed_cons) - motors_speed;
   
   
   // if(_pos_cascade_enabled) {

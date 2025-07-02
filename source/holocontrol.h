@@ -11,7 +11,7 @@ class HoloControl {
 
 private:
 
-    Eigen::Vector4d _pos_cons;
+    Eigen::Matrix<double, MOTORS_NB, 1> _pos_cons;
     
     // vitesse de consigne du robot (vx, vy, vtheta) en repere robot
     Eigen::Vector3d _speed_cons;
@@ -23,7 +23,7 @@ private:
     PID vel_pids[MOTORS_NB];
 
     // keep commands for logging
-    Eigen::Vector4d _cmds;
+    Eigen::Matrix<double, MOTORS_NB, 1> _cmds;
 
     systime_t _last_setpoint;
 
@@ -42,8 +42,8 @@ public:
     void enable_position_control(bool en) {_pos_cascade_enabled = en;}
     void enable_asserve(bool enable){_asserve_enabled = enable;}
 
-    Eigen::Vector4d get_cmds() { return _cmds;}
-    Eigen::Vector4d get_pos_cons() { return _pos_cons;}
+    Eigen::Matrix<double, MOTORS_NB, 1> get_cmds() { return _cmds;}
+    Eigen::Matrix<double, MOTORS_NB, 1> get_pos_cons() { return _pos_cons;}
     Eigen::Vector3d get_speed_cons() { return _speed_cons;}
 
 

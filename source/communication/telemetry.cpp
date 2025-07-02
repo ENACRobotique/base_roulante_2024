@@ -65,7 +65,7 @@ void send_speed(Message& msg) {
 void send_motor_pos(Message& msg) {
   msg.clear();
   auto& motors = msg.mutable_motors();
-  Eigen::Vector4d motor_pos = odometry.get_motors_pos();
+  auto motor_pos = odometry.get_motors_pos();
   motors.set_m1(motor_pos[0]);
   motors.set_m2(motor_pos[1]);
   motors.set_m3(motor_pos[2]);
@@ -75,7 +75,7 @@ void send_motor_pos(Message& msg) {
   msg.clear();
   
   motors = msg.mutable_motors();
-  Eigen::Vector4d motor_pos_cons = holocontrol.get_pos_cons();
+  auto motor_pos_cons = holocontrol.get_pos_cons();
   motors.set_m1(motor_pos_cons[0]);
   motors.set_m2(motor_pos_cons[1]);
   motors.set_m3(motor_pos_cons[2]);
@@ -85,7 +85,7 @@ void send_motor_pos(Message& msg) {
   msg.clear();
   
   motors = msg.mutable_motors();
-  Eigen::Vector4d motor_cmds = holocontrol.get_cmds();
+  auto motor_cmds = holocontrol.get_cmds();
   motors.set_m1(motor_cmds[0]);
   motors.set_m2(motor_cmds[1]);
   motors.set_m3(motor_cmds[2]);
@@ -98,7 +98,7 @@ void send_motor_pos(Message& msg) {
 void send_motor_speed(Message& msg) {
   msg.clear();
   auto& motors = msg.mutable_motors();
-  Eigen::Vector4d motor_speed = odometry.get_motors_speed();
+  auto motor_speed = odometry.get_motors_speed();
   motors.set_m1(motor_speed[0]);
   motors.set_m2(motor_speed[1]);
   motors.set_m3(motor_speed[2]);
@@ -118,7 +118,7 @@ void send_motor_speed(Message& msg) {
   msg.clear();
   
   motors = msg.mutable_motors();
-  Eigen::Vector4d motor_cmds = holocontrol.get_cmds();
+  auto motor_cmds = holocontrol.get_cmds();
   motors.set_m1(motor_cmds[0]);
   motors.set_m2(motor_cmds[1]);
   motors.set_m3(motor_cmds[2]);
