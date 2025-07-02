@@ -41,10 +41,9 @@ void HoloControl::init() {
 
   motorsStart();
 
-  mot1.set_cmd(0);
-  mot2.set_cmd(0);
-  mot3.set_cmd(0);
-  mot4.set_cmd(0);
+  for(size_t i=0; i<MOTORS_NB; i++) {
+    motors[i].set_cmd(0);
+  }
 
   _pos_cons = {0., 0., 0., 0.};
   _speed_cons = {0., 0., 0.};
@@ -94,10 +93,9 @@ void HoloControl::update()
 {
   if (chTimeI2MS(chVTTimeElapsedSinceX(_last_setpoint)) > 500) {
     _speed_cons = {0,0,0};
-    mot1.set_cmd(0);
-    mot2.set_cmd(0);
-    mot3.set_cmd(0);
-    mot4.set_cmd(0);
+    for(size_t i=0; i<MOTORS_NB; i++) {
+      motors[i].set_cmd(0);
+    }
   }
 
   if (!_asserve_enabled) {
@@ -128,9 +126,8 @@ void HoloControl::update()
     _cmds[i] = vel_pids[i].update(speed_error[i]);
   }
 
-  mot1.set_cmd(_cmds[0]);
-  mot2.set_cmd(_cmds[1]);
-  mot3.set_cmd(_cmds[2]);
-  mot4.set_cmd(_cmds[3]);
+  for(size_t i=0; i<MOTORS_NB; i++) {
+    motors[i].set_cmd(_cmds[i]);
+  }
 
 }

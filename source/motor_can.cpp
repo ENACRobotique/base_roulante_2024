@@ -27,18 +27,12 @@ static const CANConfig cancfg = {
 
 struct can_instance {
   CANDriver   *canp;
-  MotorCAN*      mot1;
-  MotorCAN*      mot2;
-  MotorCAN*      mot3;
-  MotorCAN*      mot4;
+  std::array<MotorCAN, 4>* motors;
 };
 
 static const struct can_instance can2 = {
   .canp = &CAND2,
-  .mot1 = &mot1,
-  .mot2 = &mot2,
-  .mot3 = &mot3,
-  .mot4 = &mot4
+  .motors = &motors,
 };
 
 
@@ -47,7 +41,7 @@ static const struct can_instance can2 = {
  */
 static THD_WORKING_AREA(can_rx_wa, 512);
 static THD_FUNCTION(can_rx, p) {
-  //struct can_instance *cip = (struct can_instance*)p;
+  struct can_instance *cip = (struct can_instance*)p;
   //event_listener_t el;
   CANRxFrame rxmsg;
 
@@ -59,30 +53,14 @@ static THD_FUNCTION(can_rx, p) {
     //   continue;
     while (canReceiveTimeout(CAND, CAN_ANY_MAILBOX, &rxmsg, TIME_INFINITE) == MSG_OK) {
       //chSysHalt("can msg available!");
-      MotorCAN* mot = nullptr;
-      switch (rxmsg.std.SID)
-      {
-      case 0x201:
-        mot = &mot1;
-        break;
-      case 0x202:
-        mot = &mot2;
-        break;
-      case 0x203:
-        mot = &mot3;
-        break;
-      case 0x204:
-        mot = &mot4;
-        break;
-      default:
-        continue;
-        break;
-      }
+      if(rxmsg.std.SID > 0x200 && rxmsg.std.SID <= 0x204) {
+        size_t motor_id = rxmsg.std.SID - 0x201;
 
-      int16_t angle  = (int16_t)__builtin_bswap16(rxmsg.data16[0]);
-      int16_t speed  = (int16_t)__builtin_bswap16(rxmsg.data16[1]);
-      int16_t torque = (int16_t) __builtin_bswap16(rxmsg.data16[2]);
-      mot->set_status(angle, speed, torque);
+        int16_t angle  = (int16_t)__builtin_bswap16(rxmsg.data16[0]);
+        int16_t speed  = (int16_t)__builtin_bswap16(rxmsg.data16[1]);
+        int16_t torque = (int16_t) __builtin_bswap16(rxmsg.data16[2]);
+        cip->motors->at(motor_id).set_status(angle, speed, torque);
+      }
     }
   }
   // chEvtUnregister(&CAND->rxfull_event, &el);
@@ -96,7 +74,7 @@ static THD_FUNCTION(can_rx, p) {
  */
 static THD_WORKING_AREA(can_tx_wa, 512);
 static THD_FUNCTION(can_tx, p) {
-
+  struct can_instance *cip = (struct can_instance*)p;
   CANTxFrame txmsg1;
 
   (void)p;
@@ -108,10 +86,9 @@ static THD_FUNCTION(can_tx, p) {
   
 
   while (true) {
-    txmsg1.data16[0] = __builtin_bswap16((int16_t)-mot1.get_cmd());
-    txmsg1.data16[1] = __builtin_bswap16((int16_t)-mot2.get_cmd());
-    txmsg1.data16[2] = __builtin_bswap16((int16_t)-mot3.get_cmd());
-    txmsg1.data16[3] = __builtin_bswap16((int16_t)-mot4.get_cmd());
+    for(size_t i=0; i< MOTORS_NB; i++) {
+      txmsg1.data16[i] = __builtin_bswap16((int16_t)-cip->motors->at(i).get_cmd());
+    }
     canTransmit(&CAND2, CAN_ANY_MAILBOX, &txmsg1, TIME_IMMEDIATE);
     chThdSleepMilliseconds(10);
   }
@@ -120,7 +97,7 @@ static THD_FUNCTION(can_tx, p) {
 void motorsStart() {
   canStart(&CAND2, &cancfg);
   chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO + 7, can_rx, (void *)&can2);
-  chThdCreateStatic(can_tx_wa, sizeof(can_tx_wa), NORMALPRIO + 7, can_tx, NULL);
+  chThdCreateStatic(can_tx_wa, sizeof(can_tx_wa), NORMALPRIO + 7, can_tx, (void *)&can2);
 }
 
 void MotorCAN::set_cmd(double cmd)

@@ -25,10 +25,9 @@
 
 
 void Odometry::init() {
-  mot1.init();
-  mot2.init();
-  mot3.init();
-  mot4.init();
+  for(size_t i=0; i<MOTORS_NB; i++) {
+    motors[i].init();
+  }
   
   _position = {0, 0, 0};
   prev_motors_pos = get_motors_pos();
@@ -89,10 +88,10 @@ void Odometry::set_pos(double x, double y, double theta) {
 Eigen::Matrix<double, MOTORS_NB, 1> Odometry::get_motors_pos() {
   chMtxLock(&mut_hgf_pos);
   Eigen::Matrix<double, MOTORS_NB, 1> motors_pos =
-  { mot1.get_pos(),
-    mot2.get_pos(),
-    mot3.get_pos(),
-    mot4.get_pos()
+  { motors[0].get_pos(),
+    motors[1].get_pos(),
+    motors[2].get_pos(),
+    motors[3].get_pos()
   };
   chMtxUnlock(&mut_hgf_pos);
   return motors_pos;
@@ -101,10 +100,10 @@ Eigen::Matrix<double, MOTORS_NB, 1> Odometry::get_motors_pos() {
 Eigen::Matrix<double, MOTORS_NB, 1> Odometry::get_motors_speed() {
   chMtxLock(&mut_hgf_pos);
   Eigen::Matrix<double, MOTORS_NB, 1> motors_pos =
-  { mot1.get_speed(),
-    mot2.get_speed(),
-    mot3.get_speed(),
-    mot4.get_speed()
+  { motors[0].get_speed(),
+    motors[1].get_speed(),
+    motors[2].get_speed(),
+    motors[3].get_speed()
   };
   chMtxUnlock(&mut_hgf_pos);
   return motors_pos;

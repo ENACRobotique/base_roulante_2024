@@ -73,20 +73,9 @@ static void cmd_mot(BaseSequentialStream *lchp, int argc,const char * const argv
     chprintf (lchp, "Usage: mot <n> <speed>\r\n");
     return;
   }
-  switch (atoi(argv[0]))
-  {
-  case 1:
-        mot1.set_cmd(atoi(argv[1]));
-    break;
-  case 2:
-        mot2.set_cmd(atoi(argv[1]));
-    break;
-  case 3:
-        mot3.set_cmd(atoi(argv[1]));
-    break;
-  
-  default:
-    break;
+  int motor_id = atoi(argv[0]);
+  if(motor_id >= 0 && motor_id <= MOTORS_NB) {
+    motors[motor_id].set_cmd(atoi(argv[1]));
   }
 }
 
@@ -98,20 +87,9 @@ static void cmd_encf(BaseSequentialStream *lchp, int argc,const char * const arg
     chprintf (lchp, "Usage: encf <n>\r\n");
     return;
   }
-  switch (atoi(argv[0]))
-  {
-  case 1:
-    chprintf (lchp, "Encf 1: %f\r\n", mot1.get_pos());
-    break;
-  case 2:
-    chprintf (lchp, "Encf 2: %f\r\n", mot2.get_pos());
-    break;
-  case 3:
-    chprintf (lchp, "Encf 3: %f\r\n", mot3.get_pos());
-    break;
-  
-  default:
-    break;
+  int motor_id = atoi(argv[0]);
+  if(motor_id >= 0 && motor_id <= MOTORS_NB) {
+    chprintf (lchp, "Encf 1: %f\r\n", motors[motor_id].get_pos());
   }
 }
 

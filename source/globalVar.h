@@ -33,10 +33,7 @@ extern MotorDC mot1;
 extern MotorDC mot2;
 extern MotorDC mot3;
 #elif defined(BOARD_CAN)
-extern MotorCAN mot1;
-extern MotorCAN mot2;
-extern MotorCAN mot3;
-extern MotorCAN mot4;
+extern std::array<MotorCAN, 4> motors;
 #endif
 
 extern Odometry odometry;

@@ -14,10 +14,7 @@ MotorDC mot1(&enc1, LINE_MOT1_DIR, 2, true);
 MotorDC mot2(&enc2, LINE_MOT2_DIR, 1, false);
 MotorDC mot3(&enc3, LINE_MOT3_DIR, 0, false);
 #elif defined(BOARD_CAN)
-MotorCAN mot1;
-MotorCAN mot2;
-MotorCAN mot3;
-MotorCAN mot4;
+std::array<MotorCAN, 4> motors;
 #endif
 
 Odometry odometry;

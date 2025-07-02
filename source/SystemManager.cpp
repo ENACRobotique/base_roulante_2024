@@ -3,7 +3,7 @@
 #include "globalVar.h"
 
 void SystemManager::stop_motors(){
-    mot1.set_cmd(0);
-    mot2.set_cmd(0);
-    mot3.set_cmd(0);
+    for(size_t i=0; i<MOTORS_NB; i++) {
+        motors[i].set_cmd(0);
+    }
 }
