@@ -36,13 +36,13 @@ static void ins(void *) {
 
             if(align > 0) {
                 align -= 1;
-                bias += (double)data.gz / NB_ALIGN_SAMPLES;
-                stat.Push(data.gz);
+                bias += (double)data.gx / NB_ALIGN_SAMPLES;
+                stat.Push(data.gx);
                 if(align == 1) {
                     ins_theta = 0;
                 }
             } else {
-                ins_vtheta = ((double)data.gz - bias) * DEG_TO_RAD * scale_factor;
+                ins_vtheta = ((double)data.gx - bias) * DEG_TO_RAD * scale_factor;
                 ins_theta += ins_vtheta / rate;
                 if (systemmanager.get_odom_state()& (uint32_t)Syst::OdometryFlags::ODOMETRY_INS_ON) {
                     odometry.set_theta(ins_theta);
