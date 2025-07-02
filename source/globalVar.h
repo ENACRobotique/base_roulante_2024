@@ -36,6 +36,7 @@ extern MotorDC mot3;
 extern MotorCAN mot1;
 extern MotorCAN mot2;
 extern MotorCAN mot3;
+extern MotorCAN mot4;
 #endif
 
 extern Odometry odometry;

@@ -17,6 +17,7 @@ MotorDC mot3(&enc3, LINE_MOT3_DIR, 0, false);
 MotorCAN mot1;
 MotorCAN mot2;
 MotorCAN mot3;
+MotorCAN mot4;
 #endif
 
 Odometry odometry;

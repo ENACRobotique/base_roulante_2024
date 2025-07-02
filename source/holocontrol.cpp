@@ -21,6 +21,7 @@ extern "C" {
 #include "communication.h"
 #include "globalVar.h"
 #include "ins.h"
+#include "mot_conf.h"
 
 
 /*
@@ -43,28 +44,22 @@ void HoloControl::init() {
   mot1.set_cmd(0);
   mot2.set_cmd(0);
   mot3.set_cmd(0);
+  mot4.set_cmd(0);
 
-  _pos_cons = {0., 0., 0.};
+  _pos_cons = {0., 0., 0., 0.};
   _speed_cons = {0., 0., 0.};
-  _cmds = {0., 0., 0.};
+  _cmds = {0., 0., 0., 0.};
 
   _last_setpoint = chSysGetRealtimeCounterX();
 
-  for(int i = 0; i<3;i++){
+  for(int i = 0; i<MOTORS_NB;i++){
     vel_pids[i].init(ODOM_PERIOD, 100);
-    vel_pids[i].set_gains(0.1, 0.03, -0.001);
+    vel_pids[i].set_gains(0.07, 0.01, 0.008);
+    // vel_pids[i].set_gains(0.1, 0.03, -0.001);
 
     pos_pids[i].init(ODOM_PERIOD, 10);
     pos_pids[i].set_gains(2, 0.1, 1);
-
-    speedR_pids[i].init(ODOM_PERIOD, 100);
   }
-  // speedR_pids[0].set_gains(0, 0.1, 0);
-  // speedR_pids[1].set_gains(0, 0.1, 0);
-  // speedR_pids[2].set_gains(0, 0.5, 0);
-  speedR_pids[0].set_gains(0, 0.0, 0);
-  speedR_pids[1].set_gains(0, 0.0, 0);
-  speedR_pids[2].set_gains(0, 0.0, 0);
 
   _asserve_enabled = true;
   _pos_cascade_enabled = false;
@@ -102,6 +97,7 @@ void HoloControl::update()
     mot1.set_cmd(0);
     mot2.set_cmd(0);
     mot3.set_cmd(0);
+    mot4.set_cmd(0);
   }
 
   if (!_asserve_enabled) {
@@ -111,16 +107,11 @@ void HoloControl::update()
 
   Eigen::Vector3d speedR = odometry.get_speed();
   speedR[2] = ins_get_vtheta();
-  Eigen::Vector3d speedRerror = _speed_cons - speedR;
-  Eigen::Vector3d u_speedR;
-  for(int i=0; i<3; i++) {
-    u_speedR[i] = speedR_pids[i].update(speedRerror[i]);
-  }
 
   // Eigen::Vector3d  motors_pos = odometry.get_motors_pos();
-  Eigen::Vector3d  motors_speed = odometry.get_motors_speed();
+  Eigen::Vector4d  motors_speed = odometry.get_motors_speed();
 
-  Eigen::Vector3d speed_error = D*(_speed_cons + u_speedR) - motors_speed;
+  Eigen::Vector4d speed_error = D*(_speed_cons) - motors_speed;
   
   
   // if(_pos_cascade_enabled) {
@@ -140,5 +131,6 @@ void HoloControl::update()
   mot1.set_cmd(_cmds[0]);
   mot2.set_cmd(_cmds[1]);
   mot3.set_cmd(_cmds[2]);
+  mot4.set_cmd(_cmds[3]);
 
 }

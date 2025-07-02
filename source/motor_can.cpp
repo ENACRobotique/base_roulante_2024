@@ -30,13 +30,15 @@ struct can_instance {
   MotorCAN*      mot1;
   MotorCAN*      mot2;
   MotorCAN*      mot3;
+  MotorCAN*      mot4;
 };
 
 static const struct can_instance can2 = {
   .canp = &CAND2,
   .mot1 = &mot1,
   .mot2 = &mot2,
-  .mot3 = &mot3
+  .mot3 = &mot3,
+  .mot4 = &mot4
 };
 
 
@@ -69,9 +71,9 @@ static THD_FUNCTION(can_rx, p) {
       case 0x203:
         mot = &mot3;
         break;
-      // case 0x204:
-      //   mot = &mot4;
-      //   break;
+      case 0x204:
+        mot = &mot4;
+        break;
       default:
         continue;
         break;
@@ -109,6 +111,7 @@ static THD_FUNCTION(can_tx, p) {
     txmsg1.data16[0] = __builtin_bswap16((int16_t)-mot1.get_cmd());
     txmsg1.data16[1] = __builtin_bswap16((int16_t)-mot2.get_cmd());
     txmsg1.data16[2] = __builtin_bswap16((int16_t)-mot3.get_cmd());
+    txmsg1.data16[3] = __builtin_bswap16((int16_t)-mot4.get_cmd());
     canTransmit(&CAND2, CAN_ANY_MAILBOX, &txmsg1, TIME_IMMEDIATE);
     chThdSleepMilliseconds(10);
   }

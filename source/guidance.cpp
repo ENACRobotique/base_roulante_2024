@@ -3,6 +3,7 @@
 #include "odometry.h"
 #include <math.h>
 #include "messages.h"
+#include "mot_conf.h"
  
 using namespace protoduck;
 

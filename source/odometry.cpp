@@ -11,6 +11,7 @@
 #include "stdutil.h"
 #include "printf.h"
 #include "ins.h"
+#include "mot_conf.h"
 
 /*
  *  |v1|   |-sin(O1)  cos(O1)  1|   |vx|
@@ -23,25 +24,11 @@
 // Euclidean speeds into motor speeds: m = Dv
 
 
-constexpr double THETA1 = M_PI;
-constexpr double THETA2 = -M_PI/3.0;
-constexpr double THETA3 = M_PI/3.0;
-
-// Euclidean speeds into motor speeds: m = Dv
-const Eigen::Matrix<double, 3, 3> D {
-  {-sin(THETA1), cos(THETA1), ROBOT_RADIUS},
-  {-sin(THETA2), cos(THETA2), ROBOT_RADIUS},
-  {-sin(THETA3), cos(THETA3), ROBOT_RADIUS}
-};
-
-//motor speeds into Euclidean speeds: v = Dinv m
-const Eigen::Matrix<double, 3, 3> Dinv = D.inverse();
-
-
 void Odometry::init() {
   mot1.init();
   mot2.init();
   mot3.init();
+  mot4.init();
   
   _position = {0, 0, 0};
   prev_motors_pos = get_motors_pos();
@@ -51,9 +38,9 @@ void Odometry::init() {
 
 void Odometry::update() {
   // motors position in mm
-  Eigen::Vector3d motors_pos = get_motors_pos();
+  Eigen::Vector4d motors_pos = get_motors_pos();
   // motors speed in mm/s
-  Eigen::Vector3d motors_speeds = get_motors_speed();
+  Eigen::Vector4d motors_speeds = get_motors_speed();
   
 
   //robot move in robot frame
@@ -99,22 +86,26 @@ void Odometry::set_pos(double x, double y, double theta) {
 }
 
 
-Eigen::Vector3d Odometry::get_motors_pos() {
+Eigen::Vector4d Odometry::get_motors_pos() {
   chMtxLock(&mut_hgf_pos);
-  Eigen::Vector3d motors_pos =
+  Eigen::Vector4d motors_pos =
   { mot1.get_pos(),
     mot2.get_pos(),
-    mot3.get_pos()};
+    mot3.get_pos(),
+    mot4.get_pos()
+  };
   chMtxUnlock(&mut_hgf_pos);
   return motors_pos;
 }
 
-Eigen::Vector3d Odometry::get_motors_speed() {
+Eigen::Vector4d Odometry::get_motors_speed() {
   chMtxLock(&mut_hgf_pos);
-  Eigen::Vector3d motors_pos =
+  Eigen::Vector4d motors_pos =
   { mot1.get_speed(),
     mot2.get_speed(),
-    mot3.get_speed()};
+    mot3.get_speed(),
+    mot4.get_speed()
+  };
   chMtxUnlock(&mut_hgf_pos);
   return motors_pos;
 }
