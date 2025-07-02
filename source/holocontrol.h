@@ -5,7 +5,7 @@
 #include <Eigen/Core>
 #include "PID.h"
 #include "odometry.h"
-
+#include "mot_conf.h"
 
 class HoloControl {
 
