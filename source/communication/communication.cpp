@@ -40,7 +40,7 @@ SerialDriver* Serial = &SD4;
 SerialDriver* Serial = &SD2;
 #endif
 
-static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer);
+static int check_messages(e::Message<MOTORS_NB>& dmsg, BytesReadBuffer& read_buffer);
 static void com_rx (void *);
 static void com_tx (void *);
 
@@ -79,7 +79,7 @@ static void com_rx (void *)
 
   BytesReadBuffer read_buffer;
 
-  Message msg;
+  e::Message<MOTORS_NB> msg;
 
   while (true) {
     int ret = check_messages(msg, read_buffer);
@@ -138,7 +138,7 @@ static void com_tx (void *) {
  *  Received message from serial.
  *  Returns COM_OK if a message is available.
  */
-static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer) {
+static int check_messages(e::Message<MOTORS_NB>& dmsg, BytesReadBuffer& read_buffer) {
   static uint8_t rx_buf[50] = {0};
   rx_buf[0] = rx_buf[1] = 0;
 
@@ -187,7 +187,7 @@ static int check_messages(Message& dmsg, BytesReadBuffer& read_buffer) {
 }
 
 
-msg_t post_message(Message& msg, Message::MsgType msg_type, sysinterval_t timeout) {
+msg_t post_message(e::Message<MOTORS_NB>& msg, e::Message<MOTORS_NB>::MsgType msg_type, sysinterval_t timeout) {
   BytesWriteBuffer* buffer;
   // get a free buffer
   msg_t ret = chMBFetchTimeout(&mb_free_msgs, (msg_t *)&buffer, timeout);

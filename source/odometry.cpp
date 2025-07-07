@@ -52,7 +52,7 @@ void Odometry::update() {
   _speed_r = Dinv * motors_speeds;
 
   // hypothesis: the movement is approximated as a straight line at heading [ oldTheta + dTheta/2 ]
-  double theta_mean = _position[2] + robot_move_r[2]/2;
+  double theta_mean = _position.theta() + robot_move_r[2]/2;
 
   // rotation matrix from robot frame to table frame
   const Eigen::Matrix<double, 3, 3> R {
@@ -62,11 +62,11 @@ void Odometry::update() {
   };
 
   // // change frame from robot frame to table frame
-  Eigen::Vector3d robot_move_table = R * robot_move_r;
+  Position robot_move_table = Eigen::Vector3d(R * robot_move_r);
 
   _position += robot_move_table;
-  //_position[2] = center_radians(_position[2]);
-  _position[2] = center_radians(-ins_get_theta());
+  _position.set_theta(center_radians(-ins_get_theta()));
+
 }
 
 #if defined(BOARD_DC)
@@ -80,7 +80,7 @@ void Odometry::update_filters()
 }
 #endif
 
-void Odometry::set_pos(double x, double y, double theta) {
+void Odometry::set_pos(float x, float y, float theta) {
   _position = {x, y, theta};
 }
 
@@ -111,12 +111,12 @@ Eigen::Matrix<double, MOTORS_NB, 1> Odometry::get_motors_speed() {
 
 
 void Odometry::send_move(Eigen::Vector3d dpos) {
-  Message msg;
+  e::Message<MOTORS_NB> msg;
   msg.clear();
   auto& pos = msg.mutable_pos();
   pos.set_x(dpos[0]);
   pos.set_y(dpos[1]);
   pos.set_theta(dpos[2]);
-  pos.set_obj(Pos::PosObject::MOVE_ROBOT_R);
-  post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
+  msg.set_topic(e::Topic::MOVE_ROBOT_R);
+  post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
 }

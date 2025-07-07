@@ -4,6 +4,7 @@
 #include <Eigen/Core>
 #include "encoders.h"
 #include "mot_conf.h"
+#include "Position.h"
 
 #define PERIOD_ODOM_REPORT 200  // ms
 
@@ -14,7 +15,7 @@ private:
     
 
     Eigen::Matrix<double, MOTORS_NB, 1> prev_motors_pos;
-    Eigen::Vector3d _position;
+    Position _position;
     Eigen::Vector3d _speed_r;
     MUTEX_DECL(mut_hgf_pos);
 
@@ -26,14 +27,14 @@ public:
     void init();
 
     //Accesseurs
-    void set_pos(double x, double y, double theta);
+    void set_pos(float x, float y, float theta);
 
-    double get_x(void) {return _position[0];}
-    double get_y(void) {return _position[1];}
-    double get_theta(void) {return _position[2];}
-    Eigen::Vector3d get_pos() {return _position;}
+    inline float get_x(void) {return _position.x();}
+    inline float get_y(void) {return _position.y();}
+    inline float get_theta(void) {return _position.theta();}
+    Position get_pos() {return _position;}
 
-    void set_theta(double theta) {_position[2] = theta;}
+    void set_theta(double theta) {_position.set_theta(theta);}
 
     /**
      * Speed in the robot frame

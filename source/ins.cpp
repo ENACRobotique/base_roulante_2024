@@ -70,12 +70,12 @@ void ins_set_theta(double theta) {
     ins_theta = theta;
 }
 
-void send_ins_report(Message& msg) {
+void send_ins_report(e::Message<MOTORS_NB>& msg) {
     msg.clear();
     auto& ins = msg.mutable_ins();
     ins.set_vtheta((float)ins_vtheta);
     ins.set_theta((float)ins_theta);
     ins.set_bias((float)bias);
     ins.set_variance(stat.Variance());
-    post_message(msg, protoduck::Message::MsgType::STATUS, TIME_IMMEDIATE);
+    post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
 }

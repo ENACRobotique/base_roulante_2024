@@ -3,8 +3,8 @@
 #include <functional>
 #include "messages.h"
 #include <hal.h>
-
-using namespace protoduck;
+#include "mot_conf.h"
+namespace e = enac;
 
 
 #define NUM_MESSAGES 30
@@ -25,9 +25,9 @@ enum MessagesStates {
     COM_ERROR,
 };
 
-typedef std::function<void(Message&)> msg_callback_t;
+typedef std::function<void(e::Message<MOTORS_NB>&)> msg_callback_t;
 
 
 void register_callback(msg_callback_t cb);
 void communicationStart(void);
-msg_t post_message(Message& msg, Message::MsgType msg_type, sysinterval_t timeout);
+msg_t post_message(e::Message<MOTORS_NB>& msg, e::Message<MOTORS_NB>::MsgType msg_type, sysinterval_t timeout);

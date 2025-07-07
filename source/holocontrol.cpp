@@ -35,7 +35,7 @@ extern "C" {
 // Euclidean speeds into motor speeds: m = Dv
 
 
-using namespace protoduck;
+namespace e = enac;
 
 void HoloControl::init() {
 
@@ -45,7 +45,7 @@ void HoloControl::init() {
     motors[i].set_cmd(0);
   }
 
-  _pos_cons = {0., 0., 0., 0.};
+  _motors_pos_cons = {0., 0., 0., 0.};
   _speed_cons = {0., 0., 0.};
   _cmds = {0., 0., 0., 0.};
 
@@ -71,7 +71,8 @@ void HoloControl::init() {
 */
 void HoloControl::set_cons(const Eigen::Vector3d& posRobotR, const Eigen::Vector3d& vRobotR)
 {  
-    _pos_cons = (D * posRobotR) + odometry.get_motors_pos();
+    _motors_pos_cons = (D * posRobotR) + odometry.get_motors_pos();
+    _motors_speed_cons = D*(_speed_cons);
     _speed_cons = vRobotR;
     _last_setpoint = chVTGetSystemTime();
 }
@@ -109,12 +110,12 @@ void HoloControl::update()
   // Eigen::Vector3d  motors_pos = odometry.get_motors_pos();
   auto motors_speed = odometry.get_motors_speed();
 
-  auto speed_error = D*(_speed_cons) - motors_speed;
+  auto speed_error = _motors_speed_cons - motors_speed;
   
   
   // if(_pos_cascade_enabled) {
   //   Eigen::Vector3d pos_ctrl_vel = {0, 0, 0};
-  //   Eigen::Vector3d pos_error = _pos_cons - motors_pos;
+  //   Eigen::Vector3d pos_error = _motors_pos_cons - motors_pos;
   //   for(int i=0; i<MOTORS_NB; i++) {
   //       pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i]);
   //     }

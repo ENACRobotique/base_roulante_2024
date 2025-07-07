@@ -5,7 +5,7 @@
 #include "messages.h"
 #include "mot_conf.h"
  
-using namespace protoduck;
+namespace e = enac;
 
 constexpr double VMAX = 200; //   mm/s
 
@@ -17,7 +17,7 @@ void Guidance::init(){
 }
 
 void Guidance::set_target(Eigen::Vector3d pos, bool dumb){
-    start_pos = odometry.get_pos();
+    start_pos = odometry.get_pos().to_eigen();
     target_pos = pos;
     start_time = chVTGetSystemTime();
 
@@ -62,7 +62,7 @@ void Guidance::update() {
         Eigen::Vector3d speed = {0,0,0};
 
         auto posRobotW = odometry.get_pos();
-        double theta = posRobotW[THETA];
+        double theta = posRobotW.theta();
         const Eigen::Matrix<double, 3, 3> rot {
             {cos(theta) , sin(theta), 0},
             {-sin(theta), cos(theta), 0},
@@ -76,7 +76,7 @@ void Guidance::update() {
             posCarrotW = target_pos;
         }
 
-        Eigen::Vector3d posCarrotR = rot * (posCarrotW - posRobotW);
+        Eigen::Vector3d posCarrotR = rot * (posCarrotW - posRobotW.to_eigen());
 
         posCarrotR[THETA] = center_radians(posCarrotR[THETA]);
 
@@ -100,7 +100,7 @@ void Guidance::update() {
         // pos.set_x(posCarrotW[0]);
         // pos.set_y(posCarrotW[1]);
         // pos.set_theta(posCarrotW[2]);
-        // pos.set_obj(Pos::PosObject::POS_CARROT_W);
+        // msg.set_topic(e::Topic::POS_CARROT_W);
         // post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
     }
 }

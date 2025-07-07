@@ -3,9 +3,6 @@
 #include "ch.h"
 #include "communication.h"
 
-
-using namespace protoduck;
-
 /**
  * Centers an angle in radians to [-pi, pi[
  */
@@ -27,24 +24,24 @@ double clamp(double lo, double val, double hi) {
 }
 
 
-msg_t msg_send_pos(Eigen::Vector3d pos, Pos::PosObject obj) {
-  Message msg;
+msg_t msg_send_pos(Eigen::Vector3d pos, e::Topic topic) {
+  e::Message<MOTORS_NB> msg;
   auto& pos_report = msg.mutable_pos();
-  pos_report.set_obj(obj);
+  msg.set_topic(topic);
   pos_report.set_x(pos[0]);
   pos_report.set_y(pos[1]);
   pos_report.set_theta(pos[2]);
-  return post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
+  return post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
 }
 
-msg_t msg_send_motors(Eigen::Vector3d mot, Motors::MotorDataType obj) {
-  Message msg;
+msg_t msg_send_motors(Eigen::Matrix<double, MOTORS_NB, 1> mot, e::Motors<MOTORS_NB>::MotorDataType obj) {
+  e::Message<MOTORS_NB> msg;
   auto& pos_report = msg.mutable_motors();
   pos_report.set_type(obj);
-  pos_report.set_m1(mot[0]);
-  pos_report.set_m2(mot[1]);
-  pos_report.set_m3(mot[2]);
-  return post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
+  for(size_t i=0; i<MOTORS_NB; i++) {
+    pos_report.add_m(mot[i]);
+  }
+  return post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
 }
 
 

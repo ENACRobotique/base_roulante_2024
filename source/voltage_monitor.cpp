@@ -85,9 +85,9 @@ static THD_FUNCTION(ThreadADC, arg) {
     cacheBufferInvalidate(samples1, sizeof (samples1) / sizeof (adcsample_t));
     if(status == MSG_OK) {
       double voltage = samples1[0]*ADC_TO_VOLT;
-      Message msg;
+      e::Message<MOTORS_NB> msg;
       msg.mutable_bat().set_voltage(voltage);
-      post_message(msg, Message::MsgType::STATUS, chTimeMS2I(500));
+      post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, chTimeMS2I(500));
     }
 
 

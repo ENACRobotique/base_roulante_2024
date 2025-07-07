@@ -79,28 +79,26 @@ static void locomth(void *) {
 
 
 
-void pos_cons_cb(protoduck::Message& msg) {
-   if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
+void pos_cons_cb(e::Message<MOTORS_NB>& msg) {
+   if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::COMMAND &&
       msg.has_pos()) {
-      if(msg.get_pos().get_obj() == protoduck::Pos::PosObject::POS_ROBOT_W) {
+      if(msg.get_topic() == e::Topic::POS_ROBOT_W) {
         Eigen::Vector3d pos {msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta()};
         guidance.set_target(pos);
 
-      } else if(msg.get_pos().get_obj() == protoduck::Pos::PosObject::RECALAGE) {
+      } else if(msg.get_topic() == e::Topic::RECALAGE) {
         auto x = msg.get_pos().get_x();
         auto y = msg.get_pos().get_y();
         auto theta = msg.get_pos().get_theta();
 
-        
         odometry.set_pos(x, y, theta);
         ins_set_theta(-theta);
-        
       }
    }
 }
 
-void speed_cons_cb(protoduck::Message& msg) {
-   if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
+void speed_cons_cb(e::Message<MOTORS_NB>& msg) {
+   if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::COMMAND &&
       msg.has_speed()) {
         Eigen::Vector3d speedR;
 
@@ -121,8 +119,8 @@ void speed_cons_cb(protoduck::Message& msg) {
 
 
 
-void pid_cons_cb(protoduck::Message& msg) {
-   if(msg.get_msg_type() == protoduck::Message::MsgType::COMMAND &&
+void pid_cons_cb(e::Message<MOTORS_NB>& msg) {
+   if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::COMMAND &&
       msg.has_motor_pid()) {
         auto pids = msg.get_motor_pid();
         holocontrol.set_vel_pid_gains(pids.get_kp(), pids.get_ki(), pids.get_kd());
