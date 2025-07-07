@@ -30,4 +30,4 @@ double clamp(double lo, double val, double hi);
 msg_t post_message(e::Message<MOTORS_NB>& msg, e::Message<MOTORS_NB>::MsgType msg_type, sysinterval_t timeout);
 
 msg_t msg_send_pos(Eigen::Vector3d pos, e::Topic topic);
-msg_t msg_send_motors(Eigen::Matrix<double, MOTORS_NB, 1> mot, e::Motors<MOTORS_NB>::MotorDataType obj);
+msg_t msg_send_motors(VectMot mot, e::Motors<MOTORS_NB>::MotorDataType obj);

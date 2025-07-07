@@ -17,11 +17,13 @@ def generate_txt(angles, radius):
 
     txt += "#pragma once\n\n"
 
-    txt += "#include <Eigen/LU>\n\n"
+    txt += "#include <Eigen/Core>\n\n"
 
     txt += f"constexpr double ROBOT_RADIUS = {radius};\n\n"
 
     txt += f"constexpr uint8_t MOTORS_NB = {len(angles)};\n\n"
+
+    txt += "using VectMot = Eigen::Matrix<double, MOTORS_NB, 1>;\n\n"
 
     txt += f"constexpr Eigen::Matrix<double, MOTORS_NB, 3> D {{\n"
     for s,c,r in D:

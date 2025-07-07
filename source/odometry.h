@@ -14,7 +14,7 @@ class Odometry {
 private:
     
 
-    Eigen::Matrix<double, MOTORS_NB, 1> prev_motors_pos;
+    VectMot prev_motors_pos;
     Position _position;
     Eigen::Vector3d _speed_r;
     MUTEX_DECL(mut_hgf_pos);
@@ -42,8 +42,8 @@ public:
     Eigen::Vector3d get_speed() {return _speed_r;}
 
 
-    Eigen::Matrix<double, MOTORS_NB, 1> get_motors_pos();
-    Eigen::Matrix<double, MOTORS_NB, 1> get_motors_speed();
+    VectMot get_motors_pos();
+    VectMot get_motors_speed();
 
     void update();
     

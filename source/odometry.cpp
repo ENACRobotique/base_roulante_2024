@@ -85,9 +85,9 @@ void Odometry::set_pos(float x, float y, float theta) {
 }
 
 
-Eigen::Matrix<double, MOTORS_NB, 1> Odometry::get_motors_pos() {
+VectMot Odometry::get_motors_pos() {
   chMtxLock(&mut_hgf_pos);
-  Eigen::Matrix<double, MOTORS_NB, 1> motors_pos =
+  VectMot motors_pos =
   { motors[0].get_pos(),
     motors[1].get_pos(),
     motors[2].get_pos(),
@@ -97,9 +97,9 @@ Eigen::Matrix<double, MOTORS_NB, 1> Odometry::get_motors_pos() {
   return motors_pos;
 }
 
-Eigen::Matrix<double, MOTORS_NB, 1> Odometry::get_motors_speed() {
+VectMot Odometry::get_motors_speed() {
   chMtxLock(&mut_hgf_pos);
-  Eigen::Matrix<double, MOTORS_NB, 1> motors_pos =
+  VectMot motors_pos =
   { motors[0].get_speed(),
     motors[1].get_speed(),
     motors[2].get_speed(),
