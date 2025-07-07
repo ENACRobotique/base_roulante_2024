@@ -46,3 +46,10 @@ msg_t msg_send_motors(Eigen::Vector3d mot, Motors::MotorDataType obj) {
   pos_report.set_m3(mot[2]);
   return post_message(msg, Message::MsgType::STATUS, TIME_IMMEDIATE);
 }
+
+
+
+void std::__throw_out_of_range_fmt(char const*, ...) {
+  chSysHalt("out of range");
+  while(true);
+}
