@@ -20,4 +20,3 @@ std::array<MotorCAN, 4> motors;
 Odometry odometry;
 HoloControl holocontrol;
 Guidance guidance;
-SystemManager systemmanager;

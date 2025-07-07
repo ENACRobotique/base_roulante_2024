@@ -7,7 +7,6 @@
 #include "encoders.h"
 #include "odometry.h"
 #include "guidance.h"
-#include "SystemManager.h"
 
 #if defined(BOARD_DC)
 #include "motor_dc.h"
@@ -39,9 +38,6 @@ extern std::array<MotorCAN, 4> motors;
 extern Odometry odometry;
 extern HoloControl holocontrol;
 extern Guidance guidance;
-extern SystemManager systemmanager;
-
-using Syst = protoduck::System;
 
 
 
