@@ -1,11 +1,8 @@
-#include "holocontrol.h"
+#include "controlHolo.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-  
-  #include <ch.h>
-  #include <hal.h>
-   
   #include "stdutil.h"
   #include "printf.h"
   #include "utils.h"
@@ -37,7 +34,9 @@ extern "C" {
 
 namespace e = enac;
 
-void HoloControl::init() {
+#if DRIVE == DRIVE_HOLO
+
+void ControlHolo::init() {
 
   motorsStart();
 
@@ -45,18 +44,19 @@ void HoloControl::init() {
     motors[i].set_cmd(0);
   }
 
-  _motors_pos_cons = {0., 0., 0., 0.};
   _speed_cons = {0., 0., 0.};
-  _cmds = {0., 0., 0., 0.};
+  for (int i=0;i<MOTORS_NB;i++){
+    _cmds[i] = {0.};
+  }
 
   _last_setpoint = chSysGetRealtimeCounterX();
 
   for(int i = 0; i<MOTORS_NB;i++){
-    vel_pids[i].init(ODOM_PERIOD, 100);
+    vel_pids[i].init(1000.0/ODOM_PERIOD_MS, 100);
     vel_pids[i].set_gains(0.07, 0.01, 0.008);
     // vel_pids[i].set_gains(0.1, 0.03, -0.001);
 
-    pos_pids[i].init(ODOM_PERIOD, 10);
+    pos_pids[i].init(1000.0/ODOM_PERIOD_MS, 10);
     pos_pids[i].set_gains(2, 0.1, 1);
   }
 
@@ -69,28 +69,27 @@ void HoloControl::init() {
  * pos: position setpoint in robot frame
  * speed: speed setpoint in robot frame, relative to earth
 */
-void HoloControl::set_cons(const Eigen::Vector3d& posRobotR, const Eigen::Vector3d& vRobotR)
+void ControlHolo::set_cons(Speed vRobotR)
 {  
-    _motors_pos_cons = (D * posRobotR) + odometry.get_motors_pos();
+    _speed_cons = vRobotR.to_eigen();
     _motors_speed_cons = D*(_speed_cons);
-    _speed_cons = vRobotR;
     _last_setpoint = chVTGetSystemTime();
 }
 
 
-void HoloControl::set_vel_pid_gains(double kp, double ki, double kd){
+void ControlHolo::set_vel_pid_gains(double kp, double ki, double kd){
   for(int i=0;i<3;i++){
     vel_pids[i].set_gains(kp, ki, kd);
   } 
 }
 
-void HoloControl::set_pos_pid_gains(double kp, double ki, double kd){
+void ControlHolo::set_pos_pid_gains(double kp, double ki, double kd){
   for(int i=0;i<3;i++){
     pos_pids[i].set_gains(kp, ki, kd);
   } 
 }
 
-void HoloControl::update()
+void ControlHolo::update()
 {
   if (chTimeI2MS(chVTTimeElapsedSinceX(_last_setpoint)) > 500) {
     _speed_cons = {0,0,0};
@@ -104,24 +103,11 @@ void HoloControl::update()
   }
 
 
-  Eigen::Vector3d speedR = odometry.get_speed();
-  speedR[2] = ins_get_vtheta();
-
   // Eigen::Vector3d  motors_pos = odometry.get_motors_pos();
   auto motors_speed = odometry.get_motors_speed();
 
   auto speed_error = _motors_speed_cons - motors_speed;
   
-  
-  // if(_pos_cascade_enabled) {
-  //   Eigen::Vector3d pos_ctrl_vel = {0, 0, 0};
-  //   Eigen::Vector3d pos_error = _motors_pos_cons - motors_pos;
-  //   for(int i=0; i<MOTORS_NB; i++) {
-  //       pos_ctrl_vel[i] = pos_pids[i].update((double)pos_error[i]);
-  //     }
-  //   speed_error += pos_ctrl_vel;
-  // }
-
 
   for(int i=0; i<MOTORS_NB; i++) {
     _cmds[i] = vel_pids[i].update(speed_error[i]);
@@ -132,3 +118,25 @@ void HoloControl::update()
   }
 
 }
+
+void ControlHolo::send_motor_speedcons(e::Message<MOTORS_NB>& msg){
+  msg.clear();
+  auto& motors_msg = msg.mutable_motors();
+  for (int i=0;i<MOTORS_NB;i++){
+    motors_msg.add_m(_motors_speed_cons[i]);
+  }
+  motors_msg.set_type(e::Motors<MOTORS_NB>::MotorDataType::MOTORS_SPEED_CONS);
+  post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
+}
+
+void ControlHolo::send_motor_speedcmd(e::Message<MOTORS_NB>& msg){
+  msg.clear();
+  auto& motors_msg = msg.mutable_motors();
+  for (int i=0;i<MOTORS_NB;i++){
+    motors_msg.add_m(_cmds[i]);
+  }
+  motors_msg.set_type(e::Motors<MOTORS_NB>::MotorDataType::MOTORS_CMD);
+  post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
+}
+
+#endif

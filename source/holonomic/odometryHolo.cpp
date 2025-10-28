@@ -1,4 +1,4 @@
-#include "odometry.h"
+#include "odometryHolo.h"
 #include "encoders.h"
 #include "utils.h"
 #include "communication.h"
@@ -24,7 +24,9 @@
 // Euclidean speeds into motor speeds: m = Dv
 
 
-void Odometry::init() {
+#if DRIVE == DRIVE_HOLO
+
+void odometryHolo::init() {
   for(size_t i=0; i<MOTORS_NB; i++) {
     motors[i].init();
   }
@@ -35,7 +37,7 @@ void Odometry::init() {
 }
 
 
-void Odometry::update() {
+void odometryHolo::update() {
   // motors position in mm
   auto motors_pos = get_motors_pos();
   // motors speed in mm/s
@@ -49,7 +51,7 @@ void Odometry::update() {
 
   prev_motors_pos = motors_pos;
 
-  _speed_r = Dinv * motors_speeds;
+  _speed_r = Eigen::Vector3d(Dinv* motors_speeds);
 
   // hypothesis: the movement is approximated as a straight line at heading [ oldTheta + dTheta/2 ]
   double theta_mean = _position.theta() + robot_move_r[2]/2;
@@ -65,7 +67,7 @@ void Odometry::update() {
   Position robot_move_table = Eigen::Vector3d(R * robot_move_r);
 
   _position += robot_move_table;
-  _position.set_theta(center_radians(-ins_get_theta()));
+  //_position.set_theta(center_radians(-ins_get_theta()));
 
 }
 
@@ -80,37 +82,33 @@ void Odometry::update_filters()
 }
 #endif
 
-void Odometry::set_pos(float x, float y, float theta) {
-  _position = {x, y, theta};
+void odometryHolo::set_pos(Position pos) {
+  _position = pos;
 }
 
 
-VectMot Odometry::get_motors_pos() {
+VectMot odometryHolo::get_motors_pos() {
   chMtxLock(&mut_hgf_pos);
-  VectMot motors_pos =
-  { motors[0].get_pos(),
-    motors[1].get_pos(),
-    motors[2].get_pos(),
-    motors[3].get_pos()
-  };
+  VectMot motors_pos;
+  for(size_t i=0; i<MOTORS_NB; i++) {
+    motors_pos[i] =  motors[i].get_pos();
+  }
   chMtxUnlock(&mut_hgf_pos);
   return motors_pos;
 }
 
-VectMot Odometry::get_motors_speed() {
+VectMot odometryHolo::get_motors_speed() {
   chMtxLock(&mut_hgf_pos);
-  VectMot motors_pos =
-  { motors[0].get_speed(),
-    motors[1].get_speed(),
-    motors[2].get_speed(),
-    motors[3].get_speed()
-  };
+  VectMot motors_speed;
+  for(size_t i=0; i<MOTORS_NB; i++) {
+    motors_speed[i] =  motors[i].get_speed();
+  }
   chMtxUnlock(&mut_hgf_pos);
-  return motors_pos;
+  return motors_speed;
 }
 
 
-void Odometry::send_move(Eigen::Vector3d dpos) {
+void odometryHolo::send_move(Eigen::Vector3d dpos) {
   e::Message<MOTORS_NB> msg;
   msg.clear();
   auto& pos = msg.mutable_pos();
@@ -120,3 +118,16 @@ void Odometry::send_move(Eigen::Vector3d dpos) {
   msg.set_topic(e::Topic::MOVE_ROBOT_R);
   post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
 }
+
+
+void odometryHolo::send_motor_speed(e::Message<MOTORS_NB>& msg){
+  msg.clear();
+  auto& motors_msg = msg.mutable_motors();
+  for(size_t i=0; i<MOTORS_NB; i++) {
+    motors_msg.add_m(motors[i].get_speed());
+  }
+  motors_msg.set_type(e::Motors<MOTORS_NB>::MotorDataType::MOTORS_SPEED);
+  post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
+}
+
+#endif

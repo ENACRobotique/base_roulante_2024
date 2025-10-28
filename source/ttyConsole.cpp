@@ -12,6 +12,7 @@
 #include "printf.h"
 #include "globalVar.h"
 #include "motor.h"
+#include "mot_conf.h"
 
 
 /*===========================================================================*/
@@ -97,10 +98,10 @@ static void cmd_odom(BaseSequentialStream *lchp, int argc,const char * const arg
   (void)argv;
   (void)argc;
   
-
-    chprintf (lchp, "x : %f\r\n", odometry.get_x());
-    chprintf (lchp, "y : %f\r\n", odometry.get_y());
-    chprintf (lchp, "theta : %f\r\n", odometry.get_theta());
+    auto pos = odometry.get_pos();
+    chprintf (lchp, "x : %f\r\n",pos.x());
+    chprintf (lchp, "y : %f\r\n", pos.y());
+    chprintf (lchp, "theta : %f\r\n", pos.theta());
 }
 
 
@@ -108,10 +109,10 @@ static void cmd_guidance(BaseSequentialStream *lchp, int argc,const char * const
   (void)argv;
   (void)argc;
   
-  const Eigen::Vector3d pos {atof(argv[0]),atof(argv[1]),atof(argv[2])};  // 2pi = 1 tour
-  const Eigen::Vector3d vitesse {atof(argv[3]),atof(argv[4]),atof(argv[5])};
+  //const Eigen::Vector3d pos {atof(argv[0]),atof(argv[1]),atof(argv[2])};  // 2pi = 1 tour
+  Speed vitesse = Speed(atof(argv[3]),atof(argv[4]),atof(argv[5]));
 
-  holocontrol.set_cons(pos,vitesse);
+  control.set_cons(vitesse);
   chprintf (lchp, "Ok\r\n");
 }
 

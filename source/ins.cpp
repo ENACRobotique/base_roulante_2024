@@ -44,7 +44,7 @@ static void ins(void *) {
             } else {
                 ins_vtheta = ((double)data.gx - bias) * DEG_TO_RAD * scale_factor;
                 ins_theta += ins_vtheta / rate;
-                odometry.set_theta(ins_theta);
+                //odometry.set_theta(ins_theta);
             }
         }
 

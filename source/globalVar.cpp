@@ -1,6 +1,7 @@
 #include "globalVar.h"
 #include "hal.h"
 #include "motor_dc.h"
+#include "globalVar.h"
 
 
 #if defined(BOARD_DC)
@@ -17,6 +18,13 @@ MotorDC mot3(&enc3, LINE_MOT3_DIR, 0, false);
 std::array<MotorCAN, 4> motors;
 #endif
 
-Odometry odometry;
-HoloControl holocontrol;
-Guidance guidance;
+#if DRIVE == DRIVE_HOLO
+odometryHolo odometry;
+ControlHolo control;
+GuidanceHolo guidance;
+#elif DRIVE == DRIVE_DIFF
+OdometryDiff odometry;
+ControlDiff control;
+GuidanceDiff guidance;
+
+#endif

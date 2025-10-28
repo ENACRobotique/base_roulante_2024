@@ -4,10 +4,13 @@
 #include <ch.h>
 #include <Eigen/Core>
 #include "PID.h"
-#include "odometry.h"
+#include "odometryHolo.h"
 #include "mot_conf.h"
+#include "control.h"
 
-class HoloControl {
+#if DRIVE == DRIVE_HOLO
+
+class ControlHolo: public Control {
 
 private:
 
@@ -31,11 +34,14 @@ private:
 
 public:
 
-    HoloControl(){};
-    void init();
+    ControlHolo(){};
+    void init() override;
+    void update() override;
+    // void send_motor_speedcons(e::Message<MOTORS_NB>& msg) override;
+    // void send_motor_speedcmd(e::Message<MOTORS_NB>& msg) override;
 
-    void set_cons(const Eigen::Vector3d& posRobotR, const Eigen::Vector3d& vRobotR);
-    void update();
+    void set_cons(Speed vRobotR);
+
     void set_vel_pid_gains(double kp, double ki, double kd);
     void set_pos_pid_gains(double kp, double ki, double kd);
     
@@ -43,10 +49,18 @@ public:
     void enable_position_control(bool en) {_pos_cascade_enabled = en;}
     void enable_asserve(bool enable){_asserve_enabled = enable;}
 
+    
+
+
     VectMot get_motors_cmds() { return _cmds;}
     VectMot get_motors_pos_cons() { return _motors_pos_cons;}
     VectMot get_motors_speed_cons() { return _motors_speed_cons;}
     Eigen::Vector3d get_speed_cons() { return _speed_cons;}
 
+    void send_motor_speedcons(e::Message<MOTORS_NB>& msg);
+    void send_motor_speedcmd(e::Message<MOTORS_NB>& msg);
+
 
 };
+
+#endif

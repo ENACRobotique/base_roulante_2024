@@ -9,7 +9,7 @@
 #include "globalVar.h"
 #include "communication.h"
 #include "motor.h"
-#include "holocontrol.h"
+#include "controlHolo.h"
 #include "BytesReadBuffer.h"
 #include "BytesWriteBuffer.h"
 #include <Eigen/Core>
@@ -19,14 +19,6 @@
 #include "voltage_monitor.h"
 #include "ins.h"
 
-
-// #if defined(BOARD_DC)
-// #error "board DC"
-// #elif defined(BOARD_CAN)
-// #error "board CAN"
-// #else
-// #error "No board defined"
-// #endif
 
 
 /*
@@ -66,32 +58,26 @@ static void locomth(void *) {
   chRegSetThreadName("locomth");
   while (true) {
     systime_t now = chVTGetSystemTime();
-    
-    odometry.update();
-    //   guidance.update();
-    holocontrol.update();
-
     //DebugTrace("plop");
-    
-    chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD)));
+    odometry.update();
+    guidance.update();
+    control.update();
+    chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD_MS)));
   }
 }
-
 
 
 void pos_cons_cb(e::Message<MOTORS_NB>& msg) {
    if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::COMMAND &&
       msg.has_pos()) {
       if(msg.get_topic() == e::Topic::POS_ROBOT_W) {
-        Eigen::Vector3d pos {msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta()};
+        auto pos = Position(msg.get_pos());
+        //Position pos = Position(msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta());
         guidance.set_target(pos);
 
       } else if(msg.get_topic() == e::Topic::RECALAGE) {
-        auto x = msg.get_pos().get_x();
-        auto y = msg.get_pos().get_y();
         auto theta = msg.get_pos().get_theta();
-
-        odometry.set_pos(x, y, theta);
+        odometry.set_pos(msg.get_pos());
         ins_set_theta(-theta);
       }
    }
@@ -100,18 +86,14 @@ void pos_cons_cb(e::Message<MOTORS_NB>& msg) {
 void speed_cons_cb(e::Message<MOTORS_NB>& msg) {
    if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::COMMAND &&
       msg.has_speed()) {
-        Eigen::Vector3d speedR;
-
 
         auto vx = msg.get_speed().get_vx();
         auto vy = msg.get_speed().get_vy();
         auto vtheta = msg.get_speed().get_vtheta();
 
-        speedR[0] = vx;
-        speedR[1] = vy;
-        speedR[2] = vtheta;
-        
-        holocontrol.set_cons({0,0,0}, speedR);
+        Speed speedR = Speed(vx,vy,vtheta);
+
+        control.set_cons(speedR);
 
         //DebugTrace("v: %f %f %f", vx, vy, vtheta);
    }
@@ -123,7 +105,7 @@ void pid_cons_cb(e::Message<MOTORS_NB>& msg) {
    if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::COMMAND &&
       msg.has_motor_pid()) {
         auto pids = msg.get_motor_pid();
-        holocontrol.set_vel_pid_gains(pids.get_kp(), pids.get_ki(), pids.get_kd());
+        //control.set_vel_pid_gains(pids.get_kp(), pids.get_ki(), pids.get_kd());
    }
 }
 
@@ -142,7 +124,7 @@ int main(void) {
 
   // subsystems init
   odometry.init();
-  holocontrol.init();
+  control.init();
   guidance.init();
 
   imuStart();

@@ -2,25 +2,37 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "holocontrol.h"
 #ifdef __cplusplus
 #include "encoders.h"
-#include "odometry.h"
-#include "guidance.h"
+#include "mot_conf.h"
+
+#if DRIVE == DRIVE_HOLO
+#include "odometryHolo.h"
+#include "controlHolo.h"
+#include "guidanceHolo.h"
+extern odometryHolo odometry;
+extern ControlHolo control;
+extern GuidanceHolo guidance;
+#elif DRIVE == DRIVE_DIFF
+#include "odometryDiff.h"
+#include "controlDiff.h"
+#include "guidanceDiff.h"
+extern OdometryDiff odometry;
+extern ControlDiff control;
+extern GuidanceDiff guidance;
+#endif
 
 #if defined(BOARD_DC)
 #include "motor_dc.h"
+#define ENCODERS_PERIOD 2
 #elif defined(BOARD_CAN)
 #include "motor_can.h"
 #endif
 
 
-#define ENCODERS_PERIOD 2
-#define ODOM_PERIOD 20 //10
-//Nom pour les commandes ( plus lisible que 1,2,...)
-#define X 0
-#define Y 1
-#define THETA 2
+constexpr int ODOM_PERIOD_MS = 20;
+
+//#define ODOM_PERIOD 20
 
 
 #if defined(BOARD_DC)
@@ -35,9 +47,7 @@ extern MotorDC mot3;
 extern std::array<MotorCAN, 4> motors;
 #endif
 
-extern Odometry odometry;
-extern HoloControl holocontrol;
-extern Guidance guidance;
+
 
 
 

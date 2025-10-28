@@ -5,6 +5,7 @@
 #include <hal.h>
 #include <cstdint>
 #include "globalVar.h"
+#include "mot_conf.h"
 
 #if defined(BOARD_CAN)
 

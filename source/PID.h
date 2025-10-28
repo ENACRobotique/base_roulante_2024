@@ -23,9 +23,9 @@ public:
     */
     double update(double error) {
 
-        if(fabs(error) < 5) {
-            error = 0;
-        }
+        // if(fabs(error) < 5) {
+        //     error = 0;
+        // }
 
         // trapezoidal integration
         integral += (prev_err + error)/2 * dt;

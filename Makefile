@@ -72,9 +72,6 @@ EMBEDDED_PROTO_SRC := $(wildcard ./EmbeddedProto/src/*.cpp)
 EMBEDDED_PROTO_OBJS := $(EMBEDDED_PROTO_SRC:%.cpp=$(OBJECT_DIR)/%.o)
 
 
-
-MOT_CONF = cfg/mot_conf.h
-
 #
 # Build global options
 ##############################################################################
@@ -233,7 +230,7 @@ $(CONFDIR)/board.h: $(CONFDIR)/$(BOARD_FILE)
 	$(shell mkdir -p $(dir $@))
 	$(TOOLDIR)/boardGen.pl --no-pp-line $<  $@
 
-$(OBJS): $(PROTO_HDR) $(MOT_CONF)
+$(OBJS): $(PROTO_HDR)
 
 generate: $(PROTO_HDR) $(PROTO_PY)
 	$(info Done generating source files based on *.proto files.)
@@ -245,10 +242,6 @@ $(PROTO_GEN_DIR)/%.h: $(PROTO_DIR)/%.proto
 $(PROTO_GEN_DIR_PYTHON)/%_pb2.py: $(PROTO_DIR)/%.proto
 	mkdir -p $(PROTO_GEN_DIR_PYTHON)
 	$(PROTOC) -I=$(PROTO_DIR) --python_out=$(PROTO_GEN_DIR_PYTHON)  $<
-
-$(MOT_CONF): cfg/conf.py
-	$(info Generating $(MOT_CONF))
-	python3 cfg/conf.py $(MOT_CONF)
 
 flash: build/ch.elf
 	$(TOOLDIR)/bmpflash build/ch.elf
