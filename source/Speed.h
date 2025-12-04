@@ -74,6 +74,14 @@ public:
         return *this;
     }
 
+    Speed operator*(const float scale) const {
+        enac::Speed result;
+        result.set_vx(_vx * scale);
+        result.set_vy(_vy * scale);
+        result.set_vtheta(_vtheta * scale);
+        return Speed(result);
+    }
+
 private:
     float _vx;
     float _vy;

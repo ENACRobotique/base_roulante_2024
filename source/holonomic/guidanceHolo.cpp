@@ -16,7 +16,7 @@ constexpr double THETA_ACCURACY = 1*DEG_TO_RAD; //   rad
 void GuidanceHolo::init(){
 }
 
-void GuidanceHolo::set_target([[maybe_unused]] Position pos){
+void GuidanceHolo::set_target([[maybe_unused]] Position pos, [[maybe_unused]] std::optional<double> direction){
     // TODO
 }
 

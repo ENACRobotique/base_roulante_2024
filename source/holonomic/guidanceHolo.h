@@ -19,6 +19,6 @@ class GuidanceHolo: public Guidance {
 
     public:
         void init() override;
-        void set_target(Position pos) override;
+        void set_target(Position pos, std::optional<double> direction) override;
         void update() override;
 };
