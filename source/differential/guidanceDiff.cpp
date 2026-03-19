@@ -12,14 +12,14 @@ constexpr double VMAX = 400; //   mm/s
 constexpr double OMG_MAX = M_PI; //   rad/s
 
 constexpr double Ke = 5; //   pente de décélaration (probablement empirique)
-constexpr double Ke_ANG = M_PI;
-constexpr double A = 10000; // pente d'accélération 
-constexpr double A_ANG = 75*M_PI; // pente d'accélération angulaire
+constexpr double Ke_ANG = M_PI*1.5;
+constexpr double A = 5000; // pente d'accélération 
+constexpr double A_ANG = 10*M_PI; // pente d'accélération angulaire
 
 //constexpr double look_ahead_d = 10;
 
-constexpr double DIST_ACCURACY = 10;     //   mm
-constexpr double THETA_ACCURACY = 5*DEG_TO_RAD; //   rad
+constexpr double DIST_ACCURACY = 5;     //   mm
+constexpr double THETA_ACCURACY = 1*DEG_TO_RAD; //   rad
 
 void GuidanceDiff::init(){
     state = GuidanceState::IDLE;
@@ -31,7 +31,7 @@ void GuidanceDiff::set_target(Position pos, std::optional<double> direction) {
         dir = direction.value();
     } else {
         Position posRobot = odometry.get_pos();
-        Position target_pos_R = target_pos.to_frame(posRobot);
+        Position target_pos_R = pos.to_frame(posRobot);
         dir = target_pos_R.gisement();
     }
     if (abs(dir) < M_PI/2) mvt_direction = MvtDirection::FORWARD;
