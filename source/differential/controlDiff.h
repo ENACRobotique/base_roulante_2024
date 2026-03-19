@@ -14,11 +14,23 @@ class ControlDiff : public Control {
 
 private:
 
-    double robot_vit_d_cons;
-    double robot_vit_ang_cons;
+    // float robot_vit_d_cons_int;
+    // float ant_robot_vit_d_cons_int;
+    // float robot_vit_ang_cons_int;
+    // float ant_robot_vit_ang_cons_int;
 
-    double cmd_d;
-    double cmd_ang;
+    float robot_vit_d_cons_int;
+    float robot_vit_ang_cons_int;
+    Speed cons_speed;
+    float A_max = 10000;
+    float A_ang_max = 10;
+    systime_t last_time;
+    
+
+    Speed target_speed; // repere robot
+
+    float cmd_d;
+    float cmd_ang;
 
     PID d_pid;
     PID ang_pid;

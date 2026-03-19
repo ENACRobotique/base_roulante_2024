@@ -105,7 +105,12 @@ void pid_cons_cb(e::Message<MOTORS_NB>& msg) {
    if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::COMMAND &&
       msg.has_motor_pid()) {
         auto pids = msg.get_motor_pid();
-        //control.set_vel_pid_gains(pids.get_kp(), pids.get_ki(), pids.get_kd());
+        if(pids.motor_no() == 0) {
+          control.set_vit_d_pid_gains(pids.get_kp(), pids.get_ki(), pids.get_kd());
+        }
+        else if(pids.motor_no() == 1) {
+          control.set_vit_ang_pid_gains(pids.get_kp(), pids.get_ki(), pids.get_kd());
+        }
    }
 }
 
@@ -135,6 +140,7 @@ int main(void) {
   
 
   register_callback(pos_cons_cb);
+  // register_callback(traj_cons_cb);
   register_callback(pid_cons_cb);
   register_callback(speed_cons_cb);
 
