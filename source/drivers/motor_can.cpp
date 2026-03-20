@@ -88,7 +88,14 @@ static THD_FUNCTION(can_tx, p) {
 
   while (true) {
     for(size_t i=0; i< MOTORS_NB; i++) {
-      txmsg1.data16[i] = __builtin_bswap16((int16_t)-cip->motors->at(i).get_cmd());
+      int16_t cmd = (int16_t)-cip->motors->at(i).get_cmd();
+      if(cmd > 10000) {
+        cmd = 10000;
+      } else if (cmd < -10000) {
+        cmd = -10000;
+      }
+
+      txmsg1.data16[i] = __builtin_bswap16(cmd);
     }
     canTransmit(&CAND2, CAN_ANY_MAILBOX, &txmsg1, TIME_IMMEDIATE);
     chThdSleepMilliseconds(10);
