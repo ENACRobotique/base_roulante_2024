@@ -11,9 +11,9 @@ namespace e = enac;
 constexpr double VMAX = 400; //   mm/s
 constexpr double OMG_MAX = M_PI; //   rad/s
 
-constexpr double Ke = 5; //   pente de décélaration (probablement empirique)
-constexpr double Ke_ANG = M_PI*1.5;
-constexpr double A = 5000; // pente d'accélération 
+constexpr double Ke = 8; //   pente de décélaration (probablement empirique)
+constexpr double Ke_ANG = M_PI*2;
+constexpr double A = 2000; // pente d'accélération 
 constexpr double A_ANG = 10*M_PI; // pente d'accélération angulaire
 
 //constexpr double look_ahead_d = 10;
@@ -26,11 +26,12 @@ void GuidanceDiff::init(){
 }
 
 void GuidanceDiff::set_target(Position pos, std::optional<double> direction) {
+    Position posRobot = odometry.get_pos();
     double dir;
     if(direction.has_value()) {
         dir = direction.value();
     } else {
-        Position posRobot = odometry.get_pos();
+        
         Position target_pos_R = pos.to_frame(posRobot);
         dir = target_pos_R.gisement();
     }
@@ -39,16 +40,30 @@ void GuidanceDiff::set_target(Position pos, std::optional<double> direction) {
 
     target_pos = pos;
     last_time = chVTGetSystemTime();
-    Position posRobot = odometry.get_pos();
-    Position target_pos_R = target_pos.to_frame(posRobot);
 
-    //dist_target_init = sqrt(pow(target_pos_R.x(),2) +  pow(target_pos_R.y(),2));
-
-    if (abs(target_pos_R.x()) < DIST_ACCURACY) {
+    double dist = posRobot.distance(pos);
+    if (dist < DIST_ACCURACY) {
         state = GuidanceState::FINAL_TURN;
     } else {
-        //state = GuidanceState::INITIAL_TURN_TO_TARGET;
-        state = GuidanceState::COURBE;
+        state = GuidanceState::INITIAL_TURN_TO_TARGET;
+        //state = GuidanceState::COURBE;
+    }
+
+
+    if(dist > 400) {
+        vmax = VMAX ;
+        omg_max = OMG_MAX;
+        ke = Ke;
+        ke_ang = Ke_ANG;
+        a = A;
+        a_ang = A_ANG;
+    } else {
+        vmax = VMAX / 1.5;
+        omg_max = OMG_MAX/1.5;
+        ke = Ke / 1.5;
+        ke_ang = Ke_ANG;
+        a = A / 1.5;
+        a_ang = A_ANG;
     }
 }
 
@@ -83,10 +98,10 @@ void GuidanceDiff::update() {
             double speed_cons_theta;
 
             if (dist_theta<0){
-                speed_cons_theta = max(Ke_ANG * dist_theta, max( -OMG_MAX, speed.vtheta() - A_ANG * dt));
+                speed_cons_theta = max(ke_ang * dist_theta, max( -omg_max, speed.vtheta() - a_ang * dt));
             } 
             else {
-                speed_cons_theta = min(Ke_ANG * dist_theta, min(OMG_MAX, speed.vtheta() + A_ANG * dt));
+                speed_cons_theta = min(ke_ang * dist_theta, min(omg_max, speed.vtheta() + a_ang * dt));
             }
             control.set_cons(Speed(0,0,speed_cons_theta));
         }
@@ -97,9 +112,9 @@ void GuidanceDiff::update() {
             }
             double speed_cons_d;
             if(target_pos_R.x() < 0) {
-                speed_cons_d = max(Ke * target_pos_R.x(), max(-VMAX, speed.vx() - A * dt));
+                speed_cons_d = max(ke * target_pos_R.x(), max(-vmax, speed.vx() - a * dt));
             } else {
-                speed_cons_d = min(Ke * target_pos_R.x(), min(VMAX, speed.vx() + A * dt));
+                speed_cons_d = min(ke * target_pos_R.x(), min(vmax, speed.vx() + a * dt));
             }
             
             double dist_theta = target_pos_R.gisement();
@@ -111,32 +126,22 @@ void GuidanceDiff::update() {
 
             double speed_cons_theta;
             if (dist_theta<0){
-                speed_cons_theta = max(Ke_ANG * dist_theta, max( -OMG_MAX, speed.vtheta() - A_ANG * dt));
+                speed_cons_theta = max(ke_ang * dist_theta, max( -omg_max, speed.vtheta() - a_ang * dt));
             } 
             else {
-                speed_cons_theta = min(Ke_ANG * dist_theta, min(OMG_MAX, speed.vtheta() + A_ANG * dt));
+                speed_cons_theta = min(ke_ang * dist_theta, min(omg_max, speed.vtheta() + a_ang * dt));
             }
 
             control.set_cons(Speed( speed_cons_d,0, speed_cons_theta));
         }
 
-        if (state == GuidanceState::FINAL_TURN){
-            auto dist_theta = target_pos_R.theta();
-            if (abs(dist_theta) < THETA_ACCURACY) {
-                control.set_cons(Speed(0,0,0));
-                state = GuidanceState::IDLE;
-            }
-            double speed_cons_theta;
-            if (dist_theta<0){
-                speed_cons_theta = max(Ke_ANG * dist_theta, max( -OMG_MAX, speed.vtheta() - A_ANG * dt));
-            } 
-            else {
-                speed_cons_theta = min(Ke_ANG * dist_theta, min(OMG_MAX, speed.vtheta() + A_ANG * dt));
-            }
-            control.set_cons(Speed(0,0,speed_cons_theta));
-        }
+        
 
         if (state == GuidanceState::COURBE) {
+            if (abs(target_pos.distance(posRobot)) < DIST_ACCURACY*5) {
+                state = GuidanceState::FINAL_TURN;
+            }
+
             double dist_theta = target_pos_R.gisement();
             double alpha_courbe = sqrt(pow(target_pos_R.y(),2))/sqrt(pow(target_pos_R.x(),2) +  pow(target_pos_R.y(),2)) ;
 
@@ -169,6 +174,22 @@ void GuidanceDiff::update() {
             }
 
             control.set_cons(Speed((1-alpha_courbe) * speed_cons_d, 0, alpha_courbe * speed_cons_theta));
+        }
+
+        if (state == GuidanceState::FINAL_TURN){
+            auto dist_theta = target_pos_R.theta();
+            if (abs(dist_theta) < THETA_ACCURACY) {
+                control.set_cons(Speed(0,0,0));
+                state = GuidanceState::IDLE;
+            }
+            double speed_cons_theta;
+            if (dist_theta<0){
+                speed_cons_theta = max(ke_ang * dist_theta, max( -omg_max, speed.vtheta() - a_ang * dt));
+            } 
+            else {
+                speed_cons_theta = min(ke_ang * dist_theta, min(omg_max, speed.vtheta() + a_ang * dt));
+            }
+            control.set_cons(Speed(0,0,speed_cons_theta));
         }
     
         // if (state == GuidanceState::PURE_PURSUIT){

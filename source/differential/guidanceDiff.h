@@ -6,31 +6,43 @@
 
 
 class GuidanceDiff : public Guidance {
-    private:
-        enum GuidanceState{
-            INITIAL_TURN_TO_TARGET,
-            AVANCING_TO_TARGET,
-            FINAL_TURN,
-            IDLE,
-            COURBE,
-            PURE_PURSUIT
-        };
+public:
+    void init() override;
+    void set_target(Position pos, std::optional<double> direction = std::nullopt);
+    void update() override;
 
-        enum class MvtDirection : int32_t{
-            FORWARD=1,
-            BACKWARD=-1,
-            UNDEFINED=0
-        };
+private:
+    enum GuidanceState{
+        INITIAL_TURN_TO_TARGET,
+        AVANCING_TO_TARGET,
+        FINAL_TURN,
+        IDLE,
+        COURBE,
+        PURE_PURSUIT
+    };
 
-        Position start_pos;
-        Position target_pos;
-        systime_t last_time;
-        GuidanceState state;
-        MvtDirection mvt_direction;
-        double estimated_time;
+    enum class MvtDirection : int32_t{
+        FORWARD=1,
+        BACKWARD=-1,
+        UNDEFINED=0
+    };
 
-    public:
-        void init() override;
-        void set_target(Position pos, std::optional<double> direction = std::nullopt);
-        void update() override;
+    Position start_pos;
+    Position target_pos;
+    systime_t last_time;
+    GuidanceState state;
+    MvtDirection mvt_direction;
+    double estimated_time;
+
+    double vmax;
+    double omg_max;
+    double ke;
+    double ke_ang;
+    double a;
+    double a_ang;
+
+    //double dist_target_init;
+
+    //void set_trajectoire(Position* traj);
+
 };
