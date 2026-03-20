@@ -5,7 +5,7 @@
 #include <hal.h>
 
 // distance per motor turn
-constexpr double MM_PER_TURN = 208.60175219836225/36.0;
+constexpr double MM_PER_TURN = 173.4333274628416/36.0;
 
 // increments per motor turn
 constexpr double INC_PER_TURN = 8192;
