@@ -23,6 +23,20 @@ double ins_theta = 0;
 double bias = 0;
 
 
+// Seuils de détection statique (à tuner)
+constexpr double ZUPT_VIT_LIN_MAX  = 5.0;   // mm/s
+constexpr double ZUPT_VIT_ANG_MAX  = 0.01;  // rad/s
+
+// Coefficient du filtre IIR : proche de 1 = correction lente et stable
+constexpr double ZUPT_ALPHA = 0.999;
+
+static bool robot_is_static() {
+    auto speed = odometry.get_speed();
+    return (fabs(speed.vx())     < ZUPT_VIT_LIN_MAX)
+        && (fabs(speed.vtheta()) < ZUPT_VIT_ANG_MAX);
+}
+
+
 static THD_WORKING_AREA(waINS, 512);
 static void ins(void *) {
 
@@ -35,6 +49,7 @@ static void ins(void *) {
             imu_data_read_index = (imu_data_read_index+1)%IMU_DATA_NB;
 
             if(align > 0) {
+                //Je touche pas la phase d'aligmeent
                 align -= 1;
                 bias += (double)data.gx / NB_ALIGN_SAMPLES;
                 stat.Push(data.gx);
@@ -42,9 +57,21 @@ static void ins(void *) {
                     ins_theta = 0;
                 }
             } else {
+                // ins_vtheta = ((double)data.gx - bias) * DEG_TO_RAD * scale_factor;
+                // ins_theta += ins_vtheta / rate;
+                // odometry.set_theta(ins_theta);
+
+                // ── ZUPT ──────────────────────────────────────────────
+                // Si le robot est à l'arrêt, toute mesure gyro = biais pur
+                // On le corrige doucement via filtre IIR
+                if(robot_is_static()) {
+                    bias = ZUPT_ALPHA * bias + (1.0 - ZUPT_ALPHA) * data.gx;
+                }
+                // ──────────────────────────────────────────────────────
+
                 ins_vtheta = ((double)data.gx - bias) * DEG_TO_RAD * scale_factor;
                 ins_theta += ins_vtheta / rate;
-                //odometry.set_theta(ins_theta);
+                }
             }
         }
 
