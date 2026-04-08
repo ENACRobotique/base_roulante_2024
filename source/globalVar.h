@@ -5,6 +5,7 @@
 #ifdef __cplusplus
 #include "encoders.h"
 #include "mot_conf.h"
+#include "ekf.h"
 
 #if DRIVE == DRIVE_HOLO
 #include "odometryHolo.h"
@@ -48,7 +49,7 @@ extern std::array<MotorCAN, 4> motors;
 #endif
 
 
-
+extern EKF ekf;
 
 
 #endif

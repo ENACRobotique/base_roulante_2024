@@ -26,5 +26,6 @@ GuidanceHolo guidance;
 OdometryDiff odometry;
 ControlDiff control;
 GuidanceDiff guidance;
+EKF ekf;
 
 #endif
