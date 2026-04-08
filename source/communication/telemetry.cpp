@@ -14,24 +14,26 @@ void send_pos(e::Message<MOTORS_NB>& msg);
 void send_speed(e::Message<MOTORS_NB>& msg);
 void send_motor_pos(e::Message<MOTORS_NB>& msg);
 void send_motor_speed(e::Message<MOTORS_NB>& msg);
+void send_pos_ekf(e::Message<MOTORS_NB>& msg);
 
 static THD_WORKING_AREA(telem, 20000);
  static void telemetry(void *) {
    chRegSetThreadName("telemetry");
    e::Message<MOTORS_NB> msg;
 
-   while (true) {
-     systime_t now = chVTGetSystemTime();
-     
-     send_pos(msg);
-     send_speed(msg);
-     send_motor_pos(msg);
-     send_motor_speed(msg);
-     send_ins_report(msg);
+    while (true) {
+      systime_t now = chVTGetSystemTime();
+      
+      send_pos(msg);
+      send_speed(msg);
+      send_motor_pos(msg);
+      send_motor_speed(msg);
+      send_ins_report(msg);
+      send_pos_ekf(msg);
 
-     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD_MS)));
-   }
- }
+      chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD_MS)));
+    }
+}
 
 
 void telemetryStart(){
@@ -45,6 +47,14 @@ void send_pos(e::Message<MOTORS_NB>& msg) {
   auto& pos = msg.mutable_pos();
   pos = odometry.get_pos().to_proto();
   msg.set_topic(e::Topic::POS_ROBOT_W);
+  post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
+}
+
+void send_pos_ekf(e::Message<MOTORS_NB>& msg) {
+  msg.clear();
+  auto& pos = msg.mutable_pos();
+  pos = ekf.get_pos().to_proto();
+  msg.set_topic(e::Topic::POS_ROBOT_EKF);
   post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
 }
 
