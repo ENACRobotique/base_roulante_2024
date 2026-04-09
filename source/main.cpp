@@ -52,6 +52,9 @@ static void encFilter(void *) {
 
 #endif
 
+Position lidar_pos;
+bool rcv_lidar = false;
+
 static THD_WORKING_AREA(locomotion, 5000);
 [[noreturn]]
 static void locomth(void *) {
@@ -63,6 +66,33 @@ static void locomth(void *) {
     guidance.update();
     control.update();
     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD_MS)));
+  }
+}
+
+static THD_WORKING_AREA(Wa_ekf_predict, 10000);
+[[noreturn]]
+static void ekf_predict(void *) {
+  chRegSetThreadName("ekf_predict");
+  int c = 0;
+  while (true) {
+    systime_t now = chVTGetSystemTime();
+
+    ekf.predict();
+
+    if(c % 2 == 0) {
+      ekf.update_gyro(ins_get_vtheta());
+      auto speed = odometry.get_speed();
+      ekf.update_encoders(speed.vx(), speed.vtheta());
+    }
+    
+    if(rcv_lidar) {
+      rcv_lidar = false;
+      ekf.update_lidar(lidar_pos.x(), lidar_pos.y(), lidar_pos.theta());
+    }
+    
+    
+    chThdSleepUntil(chTimeAddX(now,chTimeMS2I(20)));
+    c += 1;
   }
 }
 
@@ -101,6 +131,17 @@ void speed_cons_cb(e::Message<MOTORS_NB>& msg) {
 
 
 
+void lidar_pos_cb(e::Message<MOTORS_NB>& msg) {
+  if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::STATUS && msg.has_pos() && msg.get_topic() == e::Topic::POS_LIDAR) {
+    auto pos = msg.get_pos();
+    lidar_pos = Position(msg.get_pos());
+    rcv_lidar = true;
+    //ekf.update_lidar(pos.get_x(), pos.get_y(), pos.get_theta());
+  }
+}
+
+
+
 void pid_cons_cb(e::Message<MOTORS_NB>& msg) {
    if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::COMMAND &&
       msg.has_motor_pid()) {
@@ -131,6 +172,7 @@ int main(void) {
   odometry.init();
   control.init();
   guidance.init();
+  ekf.init(0.02);
 
   imuStart();
   insStart();
@@ -143,10 +185,12 @@ int main(void) {
   // register_callback(traj_cons_cb);
   register_callback(pid_cons_cb);
   register_callback(speed_cons_cb);
+  register_callback(lidar_pos_cb);
 
 
   chThdCreateStatic(waBlinker, sizeof(waBlinker), NORMALPRIO, blinker, NULL);
   chThdCreateStatic(locomotion, sizeof(locomotion), NORMALPRIO+1, locomth, NULL);
+  chThdCreateStatic(Wa_ekf_predict, sizeof(Wa_ekf_predict), NORMALPRIO+1, ekf_predict, NULL);
 
   #if defined(BOARD_DC)
   chThdCreateStatic(encodersFilter, sizeof(encodersFilter), NORMALPRIO+1, encFilter, NULL);
