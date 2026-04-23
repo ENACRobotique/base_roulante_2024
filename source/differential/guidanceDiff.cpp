@@ -197,3 +197,8 @@ void GuidanceDiff::update() {
     }
     last_time = chVTGetSystemTime();
 }
+
+void GuidanceDiff::abort()
+{
+    state = GuidanceState::IDLE;
+}

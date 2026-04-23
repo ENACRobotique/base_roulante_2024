@@ -10,6 +10,7 @@ public:
     void init() override;
     void set_target(Position pos, std::optional<double> direction = std::nullopt);
     void update() override;
+    void abort();
 
 private:
     enum GuidanceState{

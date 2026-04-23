@@ -117,6 +117,9 @@ void speed_cons_cb(e::Message<MOTORS_NB>& msg) {
    if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::COMMAND &&
       msg.has_speed()) {
 
+        // if guidance is running, abort
+        guidance.abort();
+
         auto vx = msg.get_speed().get_vx();
         auto vy = msg.get_speed().get_vy();
         auto vtheta = msg.get_speed().get_vtheta();
