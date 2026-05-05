@@ -6,9 +6,13 @@
 
 
 class Guidance{
-    private:
+    public:
+    enum Referentiel{
+        TABLE,
+        ROBOT
+    };
     public:
         virtual void init() = 0;
-        virtual void set_target(Position pos, std::optional<double> direction) = 0;
+        virtual void set_target(Position pos, std::optional<double> direction, Referentiel ref = Referentiel::TABLE) = 0;
         virtual void update() = 0;
 };

@@ -4,7 +4,7 @@
 
 // config
 
-constexpr double ROBOT_RADIUS = 98.36;
+constexpr double ROBOT_RADIUS = 120.57;
 constexpr uint8_t MOTORS_NB = 2;
 #define DRIVE DRIVE_DIFF
 

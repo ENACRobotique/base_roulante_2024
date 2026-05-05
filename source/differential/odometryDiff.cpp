@@ -33,6 +33,9 @@ void OdometryDiff::update() {
 
   _position += Position(d_dist * cos(_position.theta() + d_theta/2), d_dist * sin(_position.theta() + d_theta/2),d_theta);
 
+  // Attention
+  _position.set_theta(ins_get_theta());
+
   _position.center_theta();
   // send_move(robot_move_r);
   double mot_gauche_vit = -motors[0].get_speed();

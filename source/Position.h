@@ -75,6 +75,25 @@ public:
         return result;
     }
 
+    Position from_frame(Position frame){
+        // matrice de rotation: https://fr.wikipedia.org/wiki/Matrice_de_rotation#En_deux_dimensions
+        //
+        // | xf | = | cos(theta)   -sin(theta)    0 | . | x0 |
+        // | yf |   | sin(theta)  cos(theta)    0 |   | y0 |
+
+        double c = cos(frame.theta());
+        double s = sin(frame.theta());
+
+        double xf = _x * c - _y * s;
+        double yf = _y * c + _x * s;
+
+        double new_x = xf + frame.x();
+        double new_y = yf + frame.y();
+        Position result = Position(new_x,new_y,_theta+frame.theta());
+        result.center_theta();
+        return result;
+    }
+
     double gisement(){
         return atan2(_y,_x);
     }

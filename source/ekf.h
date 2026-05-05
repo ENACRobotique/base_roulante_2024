@@ -26,6 +26,7 @@ public:
     Position get_pos() {
         return Position(X(0), X(1), X(2));
     }
+    void set_pos(Position pos);
 
 private:
     /*
@@ -69,8 +70,5 @@ private:
 
     Eigen::Matrix<float, 1, 1> Rg;
     Eigen::Matrix<float, 2, 2> Re;
-
-    
-
 
 };

@@ -5,6 +5,7 @@
 #include "messages.h"
 #include "mot_conf.h"
 #include "Position.h" 
+#include "ekf.h" 
 
 namespace e = enac;
 
@@ -23,22 +24,35 @@ constexpr double THETA_ACCURACY = 1*DEG_TO_RAD; //   rad
 
 void GuidanceDiff::init(){
     state = GuidanceState::IDLE;
+    last_command_id = 0;
 }
 
-void GuidanceDiff::set_target(Position pos, std::optional<double> direction) {
+void GuidanceDiff::set_target(Position pos, std::optional<double> direction, Referentiel ref) {
+    
     Position posRobot = odometry.get_pos();
+    //Position posRobot = ekf.get_pos();
+    //odometry.set_pos(posRobot);
+
+    if (ref== Referentiel::TABLE){
+            target_pos = pos;
+        }
+    else {
+            target_pos = pos.from_frame(posRobot);
+        }
+
+
     double dir;
     if(direction.has_value()) {
         dir = direction.value();
     } else {
         
-        Position target_pos_R = pos.to_frame(posRobot);
+        Position target_pos_R = target_pos.to_frame(posRobot);
         dir = target_pos_R.gisement();
     }
+
     if (abs(dir) < M_PI/2) mvt_direction = MvtDirection::FORWARD;
     else mvt_direction = MvtDirection::BACKWARD;
 
-    target_pos = pos;
     last_time = chVTGetSystemTime();
 
     double dist = posRobot.distance(pos);
@@ -181,6 +195,7 @@ void GuidanceDiff::update() {
             if (abs(dist_theta) < THETA_ACCURACY) {
                 control.set_cons(Speed(0,0,0));
                 state = GuidanceState::IDLE;
+                send_guidance_status();
             }
             double speed_cons_theta;
             if (dist_theta<0){
@@ -201,4 +216,12 @@ void GuidanceDiff::update() {
 void GuidanceDiff::abort()
 {
     state = GuidanceState::IDLE;
+}
+
+void GuidanceDiff::send_guidance_status() {
+  e::Message<MOTORS_NB> msg;
+  msg.set_r_id(last_command_id); 
+  auto& response_msg = msg.mutable_response();
+  response_msg.set_status(0);
+  post_message(msg, e::Message<MOTORS_NB>::MsgType::STATUS, TIME_IMMEDIATE);
 }

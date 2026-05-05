@@ -22,7 +22,7 @@ private:
     float robot_vit_d_cons_int;
     float robot_vit_ang_cons_int;
     Speed cons_speed;
-    float A_max = 10000;
+    float A_max = 2000;
     float A_ang_max = 10;
     systime_t last_time;
     
@@ -36,7 +36,7 @@ private:
     PID ang_pid;
 
     systime_t _last_setpoint;
-
+    
 
 public:
 

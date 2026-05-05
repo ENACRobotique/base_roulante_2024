@@ -69,7 +69,7 @@ static void locomth(void *) {
   }
 }
 
-static THD_WORKING_AREA(Wa_ekf_predict, 10000);
+static THD_WORKING_AREA(Wa_ekf_predict, 8000);
 [[noreturn]]
 static void ekf_predict(void *) {
   chRegSetThreadName("ekf_predict");
@@ -100,15 +100,23 @@ static void ekf_predict(void *) {
 void pos_cons_cb(e::Message<MOTORS_NB>& msg) {
    if(msg.get_msg_type() == e::Message<MOTORS_NB>::MsgType::COMMAND &&
       msg.has_pos()) {
-      if(msg.get_topic() == e::Topic::POS_ROBOT_W) {
+      if(msg.get_topic() == e::Topic::POS_TARGET_W) {
         auto pos = Position(msg.get_pos());
         //Position pos = Position(msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta());
+        guidance.set_commande_id(msg.r_id());
         guidance.set_target(pos);
+
+      } else if (msg.get_topic() == e::Topic::POS_TARGET_R) {
+        auto pos = Position(msg.get_pos());
+        //Position pos = Position(msg.get_pos().get_x(),msg.get_pos().get_y(),msg.get_pos().get_theta());
+        guidance.set_commande_id(msg.r_id());
+        guidance.set_target(pos, std::nullopt, guidance.Referentiel::ROBOT);
 
       } else if(msg.get_topic() == e::Topic::RECALAGE) {
         auto theta = msg.get_pos().get_theta();
         odometry.set_pos(msg.get_pos());
-        ins_set_theta(-theta);
+        //ekf.set_pos(msg.get_pos());
+        ins_set_theta(theta);
       }
    }
 }
@@ -175,7 +183,7 @@ int main(void) {
   odometry.init();
   control.init();
   guidance.init();
-  ekf.init(0.02);
+  //ekf.init(0.02);
 
   imuStart();
   insStart();
@@ -193,7 +201,7 @@ int main(void) {
 
   chThdCreateStatic(waBlinker, sizeof(waBlinker), NORMALPRIO, blinker, NULL);
   chThdCreateStatic(locomotion, sizeof(locomotion), NORMALPRIO+1, locomth, NULL);
-  chThdCreateStatic(Wa_ekf_predict, sizeof(Wa_ekf_predict), NORMALPRIO+1, ekf_predict, NULL);
+  //chThdCreateStatic(Wa_ekf_predict, sizeof(Wa_ekf_predict), NORMALPRIO+1, ekf_predict, NULL);
 
   #if defined(BOARD_DC)
   chThdCreateStatic(encodersFilter, sizeof(encodersFilter), NORMALPRIO+1, encFilter, NULL);

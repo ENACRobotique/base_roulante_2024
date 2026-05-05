@@ -8,11 +8,15 @@
 class GuidanceDiff : public Guidance {
 public:
     void init() override;
-    void set_target(Position pos, std::optional<double> direction = std::nullopt);
+    void set_target(Position pos, std::optional<double> direction = std::nullopt, Referentiel ref = Referentiel::TABLE);
     void update() override;
     void abort();
+    void set_commande_id(uint32_t id){last_command_id = id;}
 
 private:
+    void send_guidance_status();
+    uint32_t last_command_id;
+
     enum GuidanceState{
         INITIAL_TURN_TO_TARGET,
         AVANCING_TO_TARGET,

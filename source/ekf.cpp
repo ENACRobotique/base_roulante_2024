@@ -101,3 +101,10 @@ Eigen::Matrix<float, 5, 5> EKF::F(){
     return Jacob;
 }
 
+
+void EKF::set_pos(Position pos){
+    X(0) = pos.x();
+    X(1) = pos.y();
+    X(2) = pos.theta();
+};
+

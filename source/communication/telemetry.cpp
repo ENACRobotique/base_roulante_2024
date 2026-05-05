@@ -29,7 +29,7 @@ static THD_WORKING_AREA(telem, 20000);
       send_motor_pos(msg);
       send_motor_speed(msg);
       send_ins_report(msg);
-      send_pos_ekf(msg);
+      //send_pos_ekf(msg);
 
       chThdSleepUntil(chTimeAddX(now,chTimeMS2I(ODOM_PERIOD_MS)));
     }
