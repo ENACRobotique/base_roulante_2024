@@ -104,6 +104,13 @@ void GuidanceDiff::update() {
                 else dist_theta = M_PI + dist_theta;
             }
 
+            while (dist_theta > M_PI){
+                dist_theta -= 2*M_PI;
+            }
+            while (dist_theta < -M_PI){
+                    dist_theta+= 2*M_PI;
+            }
+
 
             if (abs(dist_theta) < THETA_ACCURACY) {
                 state = GuidanceState::AVANCING_TO_TARGET;
@@ -192,7 +199,14 @@ void GuidanceDiff::update() {
 
         if (state == GuidanceState::FINAL_TURN){
             auto dist_theta = target_pos_R.theta();
-            if (abs(dist_theta) < THETA_ACCURACY) {
+            while (dist_theta > M_PI){
+                dist_theta -= 2*M_PI;
+            }
+            while (dist_theta < -M_PI){
+                    dist_theta+= 2*M_PI;
+            }
+
+            if (abs(dist_theta) <= THETA_ACCURACY) {
                 control.set_cons(Speed(0,0,0));
                 state = GuidanceState::IDLE;
                 send_guidance_status();
