@@ -32,6 +32,7 @@ private:
         UNDEFINED=0
     };
 
+    mutex_t mtx;
     Position start_pos;
     Position target_pos;
     systime_t last_time;

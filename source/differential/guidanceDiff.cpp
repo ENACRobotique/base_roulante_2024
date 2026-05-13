@@ -25,10 +25,12 @@ constexpr double THETA_ACCURACY = 1*DEG_TO_RAD; //   rad
 void GuidanceDiff::init(){
     state = GuidanceState::IDLE;
     last_command_id = 0;
+    chMtxObjectInit(&mtx);
 }
 
 void GuidanceDiff::set_target(Position pos, std::optional<double> direction, Referentiel ref) {
     
+    chMtxLock(&mtx);
     Position posRobot = odometry.get_pos();
     //Position posRobot = ekf.get_pos();
     //odometry.set_pos(posRobot);
@@ -79,6 +81,8 @@ void GuidanceDiff::set_target(Position pos, std::optional<double> direction, Ref
         a = A / 1.5;
         a_ang = A_ANG;
     }
+
+    chMtxUnlock(&mtx);
 }
 
 // void GuidanceDiff::set_trajectoire(Position* traj){}
@@ -87,6 +91,7 @@ void GuidanceDiff::set_target(Position pos, std::optional<double> direction, Ref
 Envoi les consignes aux moteurs, step par step entre la pos initiale et la target pos
 */
 void GuidanceDiff::update() {
+    chMtxLock(&mtx);
     if (state != GuidanceState::IDLE){
 
         double dt = chTimeI2MS(chTimeDiffX(last_time,chVTGetSystemTime()))/1000.0;
@@ -210,6 +215,9 @@ void GuidanceDiff::update() {
                 control.set_cons(Speed(0,0,0));
                 state = GuidanceState::IDLE;
                 send_guidance_status();
+                last_time = chVTGetSystemTime();
+                chMtxUnlock(&mtx);
+                return;
             }
             double speed_cons_theta;
             if (dist_theta<0){
@@ -225,11 +233,14 @@ void GuidanceDiff::update() {
         // }
     }
     last_time = chVTGetSystemTime();
+    chMtxUnlock(&mtx);
 }
 
 void GuidanceDiff::abort()
 {
+    chMtxLock(&mtx);
     state = GuidanceState::IDLE;
+    chMtxUnlock(&mtx);
 }
 
 void GuidanceDiff::send_guidance_status() {
