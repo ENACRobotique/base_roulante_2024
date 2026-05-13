@@ -69,32 +69,32 @@ static void locomth(void *) {
   }
 }
 
-static THD_WORKING_AREA(Wa_ekf_predict, 8000);
-[[noreturn]]
-static void ekf_predict(void *) {
-  chRegSetThreadName("ekf_predict");
-  int c = 0;
-  while (true) {
-    systime_t now = chVTGetSystemTime();
+// static THD_WORKING_AREA(Wa_ekf_predict, 8000);
+// [[noreturn]]
+// static void ekf_predict(void *) {
+//   chRegSetThreadName("ekf_predict");
+//   int c = 0;
+//   while (true) {
+//     systime_t now = chVTGetSystemTime();
 
-    ekf.predict();
+//     ekf.predict();
 
-    if(c % 2 == 0) {
-      ekf.update_gyro(ins_get_vtheta());
-      auto speed = odometry.get_speed();
-      ekf.update_encoders(speed.vx(), speed.vtheta());
-    }
+//     if(c % 2 == 0) {
+//       ekf.update_gyro(ins_get_vtheta());
+//       auto speed = odometry.get_speed();
+//       ekf.update_encoders(speed.vx(), speed.vtheta());
+//     }
     
-    if(rcv_lidar) {
-      rcv_lidar = false;
-      ekf.update_lidar(lidar_pos.x(), lidar_pos.y(), lidar_pos.theta());
-    }
+//     if(rcv_lidar) {
+//       rcv_lidar = false;
+//       ekf.update_lidar(lidar_pos.x(), lidar_pos.y(), lidar_pos.theta());
+//     }
     
     
-    chThdSleepUntil(chTimeAddX(now,chTimeMS2I(20)));
-    c += 1;
-  }
-}
+//     chThdSleepUntil(chTimeAddX(now,chTimeMS2I(20)));
+//     c += 1;
+//   }
+// }
 
 
 void pos_cons_cb(e::Message<MOTORS_NB>& msg) {
@@ -113,10 +113,11 @@ void pos_cons_cb(e::Message<MOTORS_NB>& msg) {
         guidance.set_target(pos, std::nullopt, guidance.Referentiel::ROBOT);
 
       } else if(msg.get_topic() == e::Topic::RECALAGE) {
-        auto theta = msg.get_pos().get_theta();
-        odometry.set_pos(msg.get_pos());
+        Position pos = msg.get_pos();
+        pos.center_theta();
+        odometry.set_pos(pos);
         //ekf.set_pos(msg.get_pos());
-        ins_set_theta(theta);
+        ins_set_theta(pos.theta());
       }
    }
 }
